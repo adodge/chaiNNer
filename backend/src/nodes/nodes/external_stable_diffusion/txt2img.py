@@ -17,8 +17,9 @@ from ...properties.inputs import (
     SliderInput,
     EnumInput,
 )
-from ...properties.outputs import LargeImageOutput
+from ...properties.outputs import LargeImageOutput, TextOutput
 from typing import Optional
+import json
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:txt2img")
@@ -50,6 +51,7 @@ class Txt2Img(NodeBase):
         ]
         self.outputs = [
             LargeImageOutput(),
+            TextOutput(label="Metadata"),
         ]
 
         self.category = ExternalStableDiffusionCategory
@@ -68,7 +70,7 @@ class Txt2Img(NodeBase):
         width: int,
         height: int,
         sd_model_checkpoint: Optional[str],
-    ) -> np.ndarray:
+    ) -> Tuple[np.ndarray, str]:
         request_data = {
             "prompt": prompt,
             "negative_prompt": negative_prompt or "",
@@ -85,4 +87,9 @@ class Txt2Img(NodeBase):
                 "sd_model_checkpoint"
             ] = sd_model_checkpoint
         response = post(url=STABLE_DIFFUSION_TEXT2IMG_URL, json_data=request_data)
-        return decode_base64_image(response["images"][0])
+        image = decode_base64_image(response["images"][0])
+        metadata = {
+            "parameters": response['parameters'],
+            "info": json.loads(response['info']),
+        }
+        return image, json.dumps(metadata)
