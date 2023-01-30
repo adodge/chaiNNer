@@ -95,7 +95,7 @@ class CreateNoiseNode(NodeBase):
 
         if noise_method == NoiseMethod.SIMPLEX:
             img = np.zeros((height, width), dtype="float32")
-            self._add_simplex_tiled(img, seed, scale, brightness)
+            self._add_simplex(img, seed, scale, brightness)
             return np.clip(img, 0, 1)
 
         if noise_method == NoiseMethod.FRACTAL_SIMPLEX:
