@@ -143,8 +143,12 @@ class CreateNoiseNode(NodeBase):
         return np.clip(img, 0, 1)
 
 # TODO
+# Perlin noise
+# Voronoi noise
 # Effects: Turbulence, Marble, Wood grain
 # https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/procedural-patterns-noise-part-1/simple-pattern-examples.html
-# Gradients: Orthographic, Diagonal, Radial, Circular
 # Vector field from perlin noise
 # Warp an image with a vector field
+# skew
+# histograms
+# UV mapping
