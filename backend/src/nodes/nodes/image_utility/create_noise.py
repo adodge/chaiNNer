@@ -5,28 +5,26 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageUtilityCategory
-from ...impl.simplex import SimplexNoise
+from ...impl.noise_functions.simplex import SimplexNoise
+from ...impl.noise_functions.value import ValueNoise
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import (
     NumberInput,
-    EnumInput, SliderInput,
+    EnumInput, SliderInput, BoolInput,
 )
 from ...properties.outputs import ImageOutput
 
 
 class NoiseMethod(Enum):
-    PERLIN = "Perlin"
+    VALUE = "Value Noise"
     SIMPLEX = "Simplex"
-    SIMPLEX_HTILE = "Simplex (tiled horizontal)"
-    SIMPLEX_VTILE = "Simplex (tiled vertically)"
-    SIMPLEX_ATILE = "Simplex (tiled both)"
-    FRACTAL_SIMPLEX = "Simplex (3 Octave)"
-    VORONOI = "Voronoi"
 
 
-NOISE_METHOD_LABELS = {key: key.value for key in NoiseMethod}
+class FractalMethod(Enum):
+    NONE = "None"
+    PINK = "Pink noise"
 
 
 @NodeFactory.register("chainner:image:create_noise")
@@ -40,19 +38,32 @@ class CreateNoiseNode(NodeBase):
             group("seed")(
                 NumberInput("Seed", minimum=0, maximum=2 ** 32 - 1, default=0),
             ),
-            EnumInput(NoiseMethod, default_value=NoiseMethod.SIMPLEX, option_labels=NOISE_METHOD_LABELS).with_id(3),
+            EnumInput(
+                NoiseMethod,
+                default_value=NoiseMethod.SIMPLEX,
+                option_labels={key: key.value for key in NoiseMethod}
+            ).with_id(3),
+            NumberInput("Scale", minimum=1, default=1, precision=1).with_id(4),
+            SliderInput("Brightness", minimum=0, default=100, maximum=100, precision=2).with_id(5),
+            BoolInput("Tile Horizontal", default=False).with_id(10),
+            BoolInput("Tile Vertical", default=False).with_id(11),
+            EnumInput(
+                FractalMethod,
+                default_value=FractalMethod.NONE,
+                option_labels={key: key.value for key in FractalMethod}
+            ).with_id(6),
             group(
                 "conditional-enum",
                 {
-                    "enum": 3,
-                    "conditions": [
-                        [NoiseMethod.PERLIN.value, NoiseMethod.SIMPLEX.value, NoiseMethod.FRACTAL_SIMPLEX.value],
-                        [NoiseMethod.PERLIN.value, NoiseMethod.SIMPLEX.value, NoiseMethod.FRACTAL_SIMPLEX.value],
-                    ],
+                    "enum": 6,
+                    "conditions": [FractalMethod.PINK.value, FractalMethod.PINK.value, FractalMethod.PINK.value,
+                                   FractalMethod.PINK.value],
                 },
             )(
-                NumberInput("Scale", minimum=1, default=1, precision=1).with_id(4),
-                SliderInput("Brightness", minimum=0, default=100, maximum=100, precision=2).with_id(5),
+                NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
+                NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(8),
+                NumberInput("Brightness Ratio", minimum=1, default=2, precision=2).with_id(9),
+                BoolInput("Increment Seed", default=False).with_id(12),
             ),
         ]
         self.outputs = [
@@ -69,9 +80,8 @@ class CreateNoiseNode(NodeBase):
         self.icon = "MdFormatColorFill"
         self.sub = "Create Images"
 
-    @staticmethod
-    def _add_simplex(image: np.ndarray, seed: int, scale: float, brightness: float,
-                     tile_horizontal: bool = False, tile_vertical: bool = False):
+    def _add_noise(self, generator_class, image: np.ndarray, scale: float, brightness: float,
+                   tile_horizontal: bool = False, tile_vertical: bool = False, **kwargs):
         pixels = np.array([(i, j) for i in range(image.shape[0]) for j in range(image.shape[1])])
         points = np.array(pixels)
         if tile_horizontal:
@@ -85,39 +95,56 @@ class CreateNoiseNode(NodeBase):
             sx = (image.shape[0] * np.sin(x) / np.pi / 2).reshape((-1, 1))
             points = np.concatenate([points[:, 1:], cx, sx], axis=1)
 
-        sn = SimplexNoise(points.shape[1])
-        output = sn.evaluate(points / scale, seed=seed)
+        gen = generator_class(dimensions=points.shape[1], **kwargs)
+        output = gen.evaluate(points / scale)
 
         for (i, j), v in zip(pixels, output):
             image[i, j] += v * brightness
 
     def run(
             self, width: int, height: int, seed: int, noise_method: NoiseMethod,
-            scale: float, brightness: float
+            scale: float, brightness: float, tile_horizontal: bool, tile_vertical: bool, fractal_method: FractalMethod,
+            layers: int, scale_ratio: float, brightness_ratio: float,
+            increment_seed: bool,
     ) -> np.ndarray:
-        brightness = brightness / 100
+        img = np.zeros((height, width), dtype="float32")
+        brightness /= 100
 
+        kwargs = {
+            'tile_horizontal': tile_horizontal,
+            'tile_vertical': tile_vertical,
+            'scale': scale,
+            'brightness': brightness,
+            'seed': seed,
+        }
+
+        generator_class = None
         if noise_method == NoiseMethod.SIMPLEX:
-            img = np.zeros((height, width), dtype="float32")
-            self._add_simplex(img, seed, scale, brightness)
-            return np.clip(img, 0, 1)
+            generator_class = SimplexNoise
+        elif noise_method == NoiseMethod.VALUE:
+            generator_class = ValueNoise
 
-        if noise_method == NoiseMethod.SIMPLEX_HTILE:
-            img = np.zeros((height, width), dtype="float32")
-            self._add_simplex(img, seed, scale, brightness, tile_horizontal=True)
-            return np.clip(img, 0, 1)
-        if noise_method == NoiseMethod.SIMPLEX_VTILE:
-            img = np.zeros((height, width), dtype="float32")
-            self._add_simplex(img, seed, scale, brightness, tile_vertical=True)
-            return np.clip(img, 0, 1)
-        if noise_method == NoiseMethod.SIMPLEX_ATILE:
-            img = np.zeros((height, width), dtype="float32")
-            self._add_simplex(img, seed, scale, brightness, tile_horizontal=True, tile_vertical=True)
-            return np.clip(img, 0, 1)
+        if fractal_method == FractalMethod.NONE:
+            self._add_noise(generator_class, image=img, **kwargs)
+        elif fractal_method == FractalMethod.PINK:
+            del kwargs['scale'], kwargs['brightness']
+            total_brightness = 0
+            relative_brightness = 1
+            for i in range(layers):
+                total_brightness += relative_brightness
+                self._add_noise(generator_class, image=img, **kwargs, scale=scale,
+                                brightness=brightness * relative_brightness)
+                scale /= scale_ratio
+                relative_brightness /= brightness_ratio
+                if increment_seed:
+                    kwargs['seed'] = (kwargs['seed'] + 1) % (2 ** 32)
+            img /= total_brightness
 
-        if noise_method == NoiseMethod.FRACTAL_SIMPLEX:
-            img = np.zeros((height, width), dtype="float32")
-            self._add_simplex(img, seed, scale, brightness / 2)
-            self._add_simplex(img, seed, scale / 2, brightness / 4)
-            self._add_simplex(img, seed, scale / 4, brightness / 8)
-            return np.clip(img, 0, 1)
+        return np.clip(img, 0, 1)
+
+# TODO
+# Effects: Turbulence, Marble, Wood grain
+# https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/procedural-patterns-noise-part-1/simple-pattern-examples.html
+# Gradients: Orthographic, Diagonal, Radial, Circular
+# Vector field from perlin noise
+# Warp an image with a vector field

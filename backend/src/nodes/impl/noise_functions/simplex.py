@@ -42,7 +42,7 @@ SCALE = {
 
 class SimplexNoise:
     # https://en.wikipedia.org/wiki/Simplex_noise
-    def __init__(self, dimensions: int, r2: float = 0.5):
+    def __init__(self, dimensions: int, seed: Optional[int], r2: float = 0.5):
         if not (isinstance(dimensions, int) and dimensions > 0):
             raise ValueError
         if dimensions == 1:
@@ -75,15 +75,15 @@ class SimplexNoise:
                     self.gradients[idx, :zero_dim] = vec[:zero_dim]
                     self.gradients[idx, zero_dim + 1:] = vec[zero_dim:]
 
-    def evaluate(self, points: np.ndarray, seed: Optional[int] = None):
         if seed is None:
             # Use the canonical table from the reference implementation
-            permutation_table = PERMUTATION_TABLE_ARRAY
+            self.permutation_table = PERMUTATION_TABLE_ARRAY
         else:
             np.random.seed(seed)
-            permutation_table = np.arange(self.gradients.shape[0] * 16)
-            np.random.shuffle(permutation_table)
+            self.permutation_table = np.arange(self.gradients.shape[0] * 16)
+            np.random.shuffle(self.permutation_table)
 
+    def evaluate(self, points: np.ndarray):
         n_points = points.shape[0]
         assert points.shape == (n_points, self.dimensions)
 
@@ -105,8 +105,8 @@ class SimplexNoise:
 
         gradient_index = np.zeros(skewed_simplex_verts.shape[:2], dtype="int32")
         for i in range(skewed_simplex_verts.shape[2]):
-            gradient_index = (gradient_index + skewed_simplex_verts[:, :, i]) % permutation_table.size
-            gradient_index = permutation_table[gradient_index]
+            gradient_index = (gradient_index + skewed_simplex_verts[:, :, i]) % self.permutation_table.size
+            gradient_index = self.permutation_table[gradient_index]
         gradients = self.gradients[gradient_index % self.gradients.shape[0]]
 
         simplex_verts = skewed_simplex_verts - skewed_simplex_verts.sum(axis=2).reshape((n_points, -1, 1)) * self.G
