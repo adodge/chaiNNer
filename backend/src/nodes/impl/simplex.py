@@ -75,28 +75,6 @@ class SimplexNoise:
                     self.gradients[idx, :zero_dim] = vec[:zero_dim]
                     self.gradients[idx, zero_dim + 1:] = vec[zero_dim:]
 
-    def evaluate_one(self, point: np.ndarray):
-        skewed_point = point + point.sum() * self.F
-        skewed_base, skewed_point_remainder = np.divmod(skewed_point, 1)
-
-        skewed_simplex_verts = np.full((self.dimensions + 1, self.dimensions), fill_value=skewed_base, dtype="int32")
-        for n, idx in enumerate(reversed((skewed_point_remainder.argsort()))):
-            skewed_simplex_verts[n + 1:, idx] += 1
-
-        gradients = np.zeros((skewed_simplex_verts.shape[0], self.dimensions))
-        for i in range(skewed_simplex_verts.shape[0]):
-            p = 0
-            for v in skewed_simplex_verts[i]:
-                p = PERMUTATION_TABLE_ARRAY[(p + v) % len(PERMUTATION_TABLE_ARRAY)]
-            gradients[i] = self.gradients[p % len(self.gradients)]
-
-        simplex_verts = skewed_simplex_verts - skewed_simplex_verts.sum(axis=1).reshape((-1, 1)) * self.G
-        displacement = np.power(point - simplex_verts, 2).sum(axis=1)
-        dot_gradient = np.sum((point - simplex_verts) * gradients, axis=1)
-        contribution = np.power(np.maximum(0, self.r2 - displacement), 4) * dot_gradient
-
-        return np.sum(contribution)
-
     def evaluate(self, points: np.ndarray, seed: Optional[int] = None):
         if seed is None:
             # Use the canonical table from the reference implementation
