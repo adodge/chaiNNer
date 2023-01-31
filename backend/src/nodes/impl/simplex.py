@@ -6,7 +6,9 @@ References:
 Simplex noise demystified, Stefan Gustavson (2005)
 http://staffwww.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
 """
+
 import itertools
+from typing import Optional
 
 import numpy as np
 
@@ -34,7 +36,7 @@ SCALE = {
     4: 32,
     5: 28,
     6: 26,
-    None: 24,  # d >= 7
+    # It looks terrible at this many dimensions anyway
 }
 
 
@@ -45,12 +47,13 @@ class SimplexNoise:
             raise ValueError
         if dimensions == 1:
             raise RuntimeError("1D Simplex noise is not implemented here.")
+        if dimensions > 6:
+            raise RuntimeError("7D+ Simplex noise is not implemented here.")
 
         self.dimensions = dimensions
         self.r2 = r2
         self.F = (np.sqrt(self.dimensions + 1) - 1) / self.dimensions
         self.G = (1 - 1 / np.sqrt(self.dimensions + 1)) / self.dimensions
-        self.scale = SCALE.get(dimensions, SCALE[None])
 
         """
         For 2D noise, we pick 16 gradients evenly distributed around the unit circle.
@@ -72,36 +75,35 @@ class SimplexNoise:
                     self.gradients[idx, :zero_dim] = vec[:zero_dim]
                     self.gradients[idx, zero_dim + 1:] = vec[zero_dim:]
 
-    # def evaluate(self, point: np.ndarray):
-    #     skewed_point = point + point.sum() * self.F
-    #     skewed_base, skewed_point_remainder = np.divmod(skewed_point, 1)
-    #
-    #     skewed_simplex_verts = np.full((self.dimensions + 1, self.dimensions), fill_value=skewed_base, dtype="int32")
-    #     for n, idx in enumerate(reversed((skewed_point_remainder.argsort()))):
-    #         skewed_simplex_verts[n + 1:, idx] += 1
-    #
-    #     gradients = np.zeros((skewed_simplex_verts.shape[0], self.dimensions))
-    #     for i in range(skewed_simplex_verts.shape[0]):
-    #         p = 0
-    #         for v in skewed_simplex_verts[i]:
-    #             p = PERMUTATION_TABLE[(p+v) % len(PERMUTATION_TABLE)]
-    #         gradients[i] = self.gradients[p % len(self.gradients)]
-    #
-    #     simplex_verts = skewed_simplex_verts - skewed_simplex_verts.sum(axis=1).reshape((-1, 1)) * self.G
-    #     displacement = np.power(point - simplex_verts, 2).sum(axis=1)
-    #     dot_gradient = np.sum((point - simplex_verts) * gradients, axis=1)
-    #     contribution = np.power(np.maximum(0, self.r2 - displacement), 4) * dot_gradient
-    #
-    #     return np.sum(contribution)
+    def evaluate_one(self, point: np.ndarray):
+        skewed_point = point + point.sum() * self.F
+        skewed_base, skewed_point_remainder = np.divmod(skewed_point, 1)
 
-    # @profile
-    def evaluate(self, points: np.ndarray, seed: int):
-        if seed == 0:
+        skewed_simplex_verts = np.full((self.dimensions + 1, self.dimensions), fill_value=skewed_base, dtype="int32")
+        for n, idx in enumerate(reversed((skewed_point_remainder.argsort()))):
+            skewed_simplex_verts[n + 1:, idx] += 1
+
+        gradients = np.zeros((skewed_simplex_verts.shape[0], self.dimensions))
+        for i in range(skewed_simplex_verts.shape[0]):
+            p = 0
+            for v in skewed_simplex_verts[i]:
+                p = PERMUTATION_TABLE_ARRAY[(p + v) % len(PERMUTATION_TABLE_ARRAY)]
+            gradients[i] = self.gradients[p % len(self.gradients)]
+
+        simplex_verts = skewed_simplex_verts - skewed_simplex_verts.sum(axis=1).reshape((-1, 1)) * self.G
+        displacement = np.power(point - simplex_verts, 2).sum(axis=1)
+        dot_gradient = np.sum((point - simplex_verts) * gradients, axis=1)
+        contribution = np.power(np.maximum(0, self.r2 - displacement), 4) * dot_gradient
+
+        return np.sum(contribution)
+
+    def evaluate(self, points: np.ndarray, seed: Optional[int] = None):
+        if seed is None:
             # Use the canonical table from the reference implementation
             permutation_table = PERMUTATION_TABLE_ARRAY
         else:
             np.random.seed(seed)
-            permutation_table = np.arange(256)
+            permutation_table = np.arange(self.gradients.shape[0] * 16)
             np.random.shuffle(permutation_table)
 
         n_points = points.shape[0]
@@ -115,16 +117,13 @@ class SimplexNoise:
             fill_value=skewed_bases.reshape((n_points, 1, -1)),
             dtype="int32")
 
-        # XXX This is a lot slower than the alternative, sadly
-        # for i in range(skewed_points_remainder.shape[1]):
-        #     largest_dimension = np.argmax(skewed_points_remainder, axis=1)
-        #     skewed_simplex_verts[:, i+1:, largest_dimension] += 1
-        #     skewed_points_remainder[:, largest_dimension] = -np.inf
-
-        # This is the slow part:
-        for point_idx in range(n_points):
-            for n, idx in enumerate(reversed((skewed_points_remainder[point_idx].argsort()))):
-                skewed_simplex_verts[point_idx, n + 1:, idx] += 1
+        skewed_simplex_verts[:, self.dimensions, :] += 1
+        for i in range(1, self.dimensions):
+            largest_dimension = np.argmax(skewed_points_remainder, axis=1)
+            for o in range(self.dimensions):
+                skewed_simplex_verts[(largest_dimension == o), i:self.dimensions, o] += 1
+                if i != self.dimensions - 1:
+                    skewed_points_remainder[(largest_dimension == o), o] = -1
 
         gradient_index = np.zeros(skewed_simplex_verts.shape[:2], dtype="int32")
         for i in range(skewed_simplex_verts.shape[2]):
@@ -137,4 +136,4 @@ class SimplexNoise:
         dot_gradient = np.sum((points.reshape((n_points, 1, -1)) - simplex_verts) * gradients, axis=2)
         contributions = np.power(np.maximum(0, self.r2 - displacement), 4) * dot_gradient
 
-        return np.sum(contributions, axis=1) * self.scale + 0.5
+        return np.sum(contributions, axis=1) * SCALE[self.dimensions] + 0.5
