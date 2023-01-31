@@ -12,7 +12,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import (
     NumberInput,
-    EnumInput, SliderInput, BoolInput,
+    EnumInput, SliderInput, BoolInput, ImageInput,
 )
 from ...properties.outputs import ImageOutput
 
@@ -142,9 +142,66 @@ class CreateNoiseNode(NodeBase):
 
         return np.clip(img, 0, 1)
 
+
+class EffectType(Enum):
+    TURBULENCE="turbulence"
+    WOOD_GRAIN="wood grain"
+    MARBLE="marble"
+
+
+@NodeFactory.register("chainner:image:noise_effect")
+class NoiseEffect(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Apply an effect."
+        self.inputs = [
+            ImageInput(),
+            EnumInput(
+                EffectType,
+                default_value=EffectType.TURBULENCE,
+                option_labels={key: key.value for key in EffectType}
+            ).with_id(3),
+            NumberInput("Scale", minimum=1, default=1, precision=1).with_id(4),
+            SliderInput("Brightness", minimum=0, default=100, maximum=100, precision=2).with_id(5),
+            BoolInput("Tile Horizontal", default=False).with_id(10),
+            BoolInput("Tile Vertical", default=False).with_id(11),
+            EnumInput(
+                FractalMethod,
+                default_value=FractalMethod.NONE,
+                option_labels={key: key.value for key in FractalMethod}
+            ).with_id(6),
+            group(
+                "conditional-enum",
+                {
+                    "enum": 6,
+                    "conditions": [FractalMethod.PINK.value, FractalMethod.PINK.value, FractalMethod.PINK.value,
+                                   FractalMethod.PINK.value],
+                },
+            )(
+                NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
+                NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(8),
+                NumberInput("Brightness Ratio", minimum=1, default=2, precision=2).with_id(9),
+                BoolInput("Increment Seed", default=False).with_id(12),
+            ),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0",
+                    height="Input1",
+                    channels="1",
+                )
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Create Noise"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Create Images"
+
 # TODO
 # Perlin noise
 # Voronoi noise
+# Grids
 # Effects: Turbulence, Marble, Wood grain
 # https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/procedural-patterns-noise-part-1/simple-pattern-examples.html
 # Vector field from perlin noise
