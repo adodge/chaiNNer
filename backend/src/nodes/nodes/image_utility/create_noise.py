@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
+from sanic.log import logger
 
 from . import category as ImageUtilityCategory
 from ...impl.image_utils import as_3d, cartesian_product
@@ -83,7 +84,7 @@ class CreateNoiseNode(NodeBase):
 
     def _add_noise(self, generator_class, image: np.ndarray, scale: float, brightness: float,
                    tile_horizontal: bool = False, tile_vertical: bool = False, **kwargs):
-        pixels = cartesian_product(np.arange(image.shape[0]), np.arange(image.shape[1]))
+        pixels = cartesian_product([np.arange(image.shape[0]), np.arange(image.shape[1])])
         points = np.array(pixels)
         if tile_horizontal:
             x = points[:, 1] * 2 * np.pi / image.shape[1]
@@ -189,17 +190,85 @@ class NoiseEffect(NodeBase):
             return np.abs(image-0.5)*2
         elif effect_type == EffectType.WOOD_GRAIN:
             return np.remainder(image*ring_count, 1)
+            # TODO solid regions, invert odd regions
         elif effect_type == EffectType.MARBLE:
             image = as_3d(image)
             x = np.arange(image.shape[1]).reshape((1,-1,1)) / image.shape[1] * np.pi * 2 * bands
             return (np.sin((x + (image*2-1) * warp_amount)) + 1)/2
 
+
+@NodeFactory.register("chainner:image:extract_histogram")
+class IntensityHistogram(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Count the proportion of different intensities in the input image and output a histogram. " \
+                           "(1 row image where pixel intensity is proportional to count) "
+        self.inputs = [
+            ImageInput(),
+            NumberInput("Number of Bins", minimum=1, default=256),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(width="Input1", height=1, channels_as="Input0"),
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Measure Intensity"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Noise Effect"
+
+    def run(self, image: np.ndarray, n_bins: int):
+        logger.info(image.dtype, image.shape)
+        image = as_3d(image)
+        output = np.zeros((1, n_bins, image.shape[2]), dtype='float32')
+        binned = np.floor(image*n_bins).astype("int32")
+        for ch in range(image.shape[2]):
+            unique, counts = np.unique(binned[:,:,ch], return_counts=True)
+            for bin,count in zip(unique, counts):
+                if bin == n_bins:
+                    output[0, bin-1, ch] += count
+                else:
+                    output[0, bin, ch] += count
+            output[:,:,ch] /= np.max(output[:,:,ch])
+        return output
+
+
+@NodeFactory.register("chainner:image:draw_curve")
+class DrawCurve(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Take a 1 row image and plot a curve (for each channel) where the height of the curve is guided by the intensity of the input."
+        self.inputs = [
+            ImageInput(),
+            NumberInput("Height", minimum=1, unit="px", default=1),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(width_as="Input0", height="Input1", channels_as="Input0"),
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Draw Curve"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Noise Effect"
+
+    def run(self, image: np.ndarray, height: int):
+        image = as_3d(image)
+        output = np.zeros((height, image.shape[1], image.shape[2]))
+        for ch in range(image.shape[2]):
+            scale = np.max(image[:,:,ch])
+            for column in range(image.shape[1]):
+                y = int(np.floor(height * image[0,column,ch] / scale))
+                logger.info([y,column,ch])
+                output[(height-y-1):, column, ch] = 1
+        return output
+
+
 # TODO
 # Perlin noise
 # Voronoi noise
-# Grids
+# musgrave noise
 # Vector field from perlin noise
 # Warp an image with a vector field
 # skew
-# histograms
 # UV mapping

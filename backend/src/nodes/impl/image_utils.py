@@ -248,7 +248,7 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
                 outf.write(buf_img)
 
 
-def cartesian_product(*arrays):
+def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:
     """
     Returns the cartesian product of the given arrays. Good for initializing coordinates, for example.
 
