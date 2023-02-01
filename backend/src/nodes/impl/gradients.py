@@ -33,7 +33,7 @@ def _interpolate_vector(color1: np.ndarray, color2: np.ndarray, color3: np.ndarr
 def horizontal_gradient(img: np.ndarray, color1: np.ndarray, color2: np.ndarray, color3: np.ndarray,
                         middle_position: float):
     if img.shape[1] == 1:
-        raise RuntimeError("Horizontal gradient needs at least two columns.")
+        img[:,:] = color2
     x = np.arange(img.shape[1])
     p = x / (img.shape[1]-1)
     img[:, :] = _interpolate_vector(color1, color2, color3, p, middle_position).reshape((1,-1,img.shape[2]))
@@ -42,7 +42,7 @@ def horizontal_gradient(img: np.ndarray, color1: np.ndarray, color2: np.ndarray,
 def vertical_gradient(img: np.ndarray, color1: np.ndarray, color2: np.ndarray, color3: np.ndarray,
                       middle_position: float):
     if img.shape[0] == 1:
-        raise RuntimeError("Vertical gradient needs at least two rows.")
+        img[:,:] = color2
     x = np.arange(img.shape[0])
     p = x / (img.shape[0]-1)
     img[:, :] = _interpolate_vector(color1, color2, color3, p, middle_position).reshape((-1,1,img.shape[2]))

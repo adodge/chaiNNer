@@ -5,6 +5,7 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageUtilityCategory
+from ...impl.image_utils import as_3d, cartesian_product
 from ...impl.noise_functions.simplex import SimplexNoise
 from ...impl.noise_functions.value import ValueNoise
 from ...node_base import NodeBase, group
@@ -82,7 +83,7 @@ class CreateNoiseNode(NodeBase):
 
     def _add_noise(self, generator_class, image: np.ndarray, scale: float, brightness: float,
                    tile_horizontal: bool = False, tile_vertical: bool = False, **kwargs):
-        pixels = np.array([(i, j) for i in range(image.shape[0]) for j in range(image.shape[1])])
+        pixels = cartesian_product(np.arange(image.shape[0]), np.arange(image.shape[1]))
         points = np.array(pixels)
         if tile_horizontal:
             x = points[:, 1] * 2 * np.pi / image.shape[1]
@@ -98,9 +99,7 @@ class CreateNoiseNode(NodeBase):
         gen = generator_class(dimensions=points.shape[1], **kwargs)
         output = gen.evaluate(points / scale)
 
-        # TODO time this maybe image += output.reshape(image.shape) is better
-        for (i, j), v in zip(pixels, output):
-            image[i, j] += v * brightness
+        image += output.reshape(image.shape) * brightness
 
     def run(
             self, width: int, height: int, seed: int, noise_method: NoiseMethod,
@@ -171,7 +170,7 @@ class NoiseEffect(NodeBase):
                 },
             )(
                 NumberInput("Ring Count", minimum=2, default=2),
-                NumberInput("Bands", minimum=10, default=1),
+                NumberInput("Bands", minimum=1, default=10),
                 NumberInput("Warp Amount", default=5, precision=1),
             ),
         ]
@@ -191,7 +190,8 @@ class NoiseEffect(NodeBase):
         elif effect_type == EffectType.WOOD_GRAIN:
             return np.remainder(image*ring_count, 1)
         elif effect_type == EffectType.MARBLE:
-            x = np.arange(image.shape[1]).reshape((1,-1)) / image.shape[1] * np.pi * 2 * bands
+            image = as_3d(image)
+            x = np.arange(image.shape[1]).reshape((1,-1,1)) / image.shape[1] * np.pi * 2 * bands
             return (np.sin((x + (image*2-1) * warp_amount)) + 1)/2
 
 # TODO

@@ -41,7 +41,6 @@ SCALE = {
 
 
 class SimplexNoise:
-    # https://en.wikipedia.org/wiki/Simplex_noise
     def __init__(self, dimensions: int, seed: Optional[int], r2: float = 0.5):
         if not (isinstance(dimensions, int) and dimensions > 0):
             raise ValueError
