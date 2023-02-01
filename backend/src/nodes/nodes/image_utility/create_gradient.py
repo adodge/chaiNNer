@@ -6,6 +6,7 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageUtilityCategory
+from ...impl.gradients import horizontal_gradient, vertical_gradient, diagonal_gradient, radial_gradient, conic_gradient
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -100,15 +101,6 @@ class CreateGradientNode(NodeBase):
         self.icon = "MdFormatColorFill"
         self.sub = "Create Images"
 
-    def _interpolate(self, color1: np.ndarray, color2: np.ndarray, color3: np.ndarray, p: float,
-                     middle_position: float):
-        if p <= middle_position and middle_position > 0:
-            q = p / middle_position
-            return color1 * (1 - q) + color2 * q
-        else:
-            q = (p - middle_position) / (1 - middle_position)
-            return color2 * (1 - q) + color3 * q
-
     def run(
             self, width: int, height: int,
             color_mode: ColorMode,
@@ -138,60 +130,19 @@ class CreateGradientNode(NodeBase):
             color2 = np.array([gray2], dtype="float32") / 255
             color3 = np.array([gray3], dtype="float32") / 255
 
-        # TODO vectorize these...  too slow
         if gradient_style == GradientStyle.HORIZONTAL:
-            if width == 1:
-                raise RuntimeError("Horizontal gradient needs at least two width.")
-            for column in range(width):
-                p = column / (width - 1)
-                img[:, column] = self._interpolate(color1, color2, color3, p, middle_position)
+            horizontal_gradient(img, color1, color2, color3, middle_position)
 
         elif gradient_style == GradientStyle.VERTICAL:
-            if height == 1:
-                raise RuntimeError("Vertical gradient needs at least two height.")
-            for row in range(height):
-                p = row / (height - 1)
-                img[row, :] = self._interpolate(color1, color2, color3, p, middle_position)
+            vertical_gradient(img, color1, color2, color3, middle_position)
 
         elif gradient_style == GradientStyle.DIAGONAL:
-            diagonal = np.array([width, height], dtype="float32")
-            diagonal_length = np.sqrt(np.sum(diagonal ** 2))
-            diagonal /= diagonal_length
-            for column in range(width):
-                for row in range(height):
-                    projection = diagonal.dot(np.array([column, row]))
-                    length = np.sqrt(np.sum(projection ** 2))
-                    p = length / (diagonal_length - 1)
-                    img[row, column] = self._interpolate(color1, color2, color3, p, middle_position)
+            diagonal_gradient(img, color1, color2, color3, middle_position)
 
         elif gradient_style == GradientStyle.RADIAL:
-
-            inner_radius = 0
-            outer_radius = width / 2
-
-            center = np.array([width, height], dtype="float32") / 2
-            for column in range(width):
-                for row in range(height):
-                    distance = np.sqrt(np.sum((np.array([column, row]) - center) ** 2))
-                    if distance <= inner_radius:
-                        color = color1
-                    elif distance >= outer_radius:
-                        color = color3
-                    else:
-                        p = (distance - inner_radius) / (outer_radius - inner_radius)
-                        color = self._interpolate(color1, color2, color3, p, middle_position)
-                    img[row, column] = color
+            radial_gradient(img, color1, color2, color3, middle_position)
 
         elif gradient_style == GradientStyle.CONIC:
-            # TODO rotation parameter
-            center = np.array([width, height]) / 2
-            for column in range(width):
-                for row in range(height):
-                    delta = np.array([column, row]) - center
-                    angle = math.atan2(delta[1], delta[0])
-                    if angle < 0:
-                        angle += np.pi * 2
-                    p = angle / np.pi / 2
-                    img[row, column] = self._interpolate(color1, color2, color3, p, middle_position)
+            conic_gradient(img, color1, color2, color3, middle_position)
 
         return img
