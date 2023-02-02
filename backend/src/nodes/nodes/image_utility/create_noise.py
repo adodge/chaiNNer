@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Tuple
 
 import numpy as np
 from sanic.log import logger
@@ -218,7 +219,6 @@ class IntensityHistogram(NodeBase):
         self.sub = "Noise Effect"
 
     def run(self, image: np.ndarray, n_bins: int):
-        logger.info(image.dtype, image.shape)
         image = as_3d(image)
         output = np.zeros((1, n_bins, image.shape[2]), dtype='float32')
         binned = np.floor(image*n_bins).astype("int32")
@@ -259,10 +259,111 @@ class DrawCurve(NodeBase):
             scale = np.max(image[:,:,ch])
             for column in range(image.shape[1]):
                 y = int(np.floor(height * image[0,column,ch] / scale))
-                logger.info([y,column,ch])
                 output[(height-y-1):, column, ch] = 1
         return output
 
+
+def dtype_to_float(image: np.ndarray) -> np.ndarray:
+    if image.dtype == np.dtype("float32"):
+        return image
+    max_value = np.iinfo(image.dtype).max
+    return image.astype(np.dtype("float32")) / max_value
+
+
+@NodeFactory.register("chainner:image:create_vector_field")
+class NoiseVectorField(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Take a greyscale image and interpret it as a field of angles.  Returns a normal map with normalized vectors in the red and green channels.  Black pixels will be mapped to 'Start angle' and white pixels will be mapped to 'Start angle + Angle Range'"
+        self.inputs = [
+            ImageInput(channels=1),
+            NumberInput("Start Angle", minimum=0, maximum=360, unit="degree", default=0),
+            NumberInput("Angle Range", minimum=0, maximum=360, unit="degree", default=360),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(size_as="Input0", channels=3),
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Vector Field"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Noise Effect"
+
+    def run(self, image: np.ndarray, angle0: float, d_angle: float):
+        image = dtype_to_float(image)
+        if image.ndim == 3:
+            assert image.shape[2] == 1
+            image = image.reshape((image.shape[:2]))
+        radians = (image*d_angle + angle0) * np.pi / 180
+        red, green, blue = np.cos(radians)/2+1/2, np.sin(radians)/2+1/2, np.zeros_like(image)
+        return np.stack([blue,green,red], axis=2)
+
+
+@NodeFactory.register("chainner:image:simulate_particle_movement")
+class SimulateParticles(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Simulate the movement of a bunch of particles on a vector field."
+        self.inputs = [
+            ImageInput(channels=3),
+            group("seed")(
+                NumberInput("Seed", minimum=0, maximum=2 ** 32 - 1, default=0),
+            ),
+            NumberInput("Number of Particles", minimum=0, default=100),
+            NumberInput("Simulation Steps", minimum=0, default=100),
+            BoolInput("Wrap Horizontal", default=False),
+            BoolInput("Wrap Vertical", default=False),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(size_as="Input0", channels=1),
+            ),
+            ImageOutput(
+                image_type=expression.Image(size_as="Input0", channels=1),
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Particle Simulation"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Noise Effect"
+
+    def run(self, image: np.ndarray, seed: int, n_particles:int, n_steps: int, wrap_horizontal: bool, wrap_vertical: bool) -> Tuple[np.ndarray, np.ndarray]:
+        flat_image = image[:,:,1:3].reshape((-1,2))
+
+        np.random.seed(seed)
+        position = np.random.random((n_particles, 2))*np.array(image.shape[:2]).reshape((1,-1))
+        trail = np.zeros((flat_image.shape[0]), dtype=np.int32)
+
+        for _ in range(n_steps):
+            pixel = np.floor(position).astype(np.int32)
+            indices = pixel[:,0] + pixel[:,1]*image.shape[0]
+            np.add.at(trail, indices, 1)
+            velocity = flat_image[indices]*2-1
+            position += velocity
+
+            if wrap_vertical:
+                position[position[:,0] > image.shape[0], 0] -= image.shape[0]
+                position[position[:,0] < 0, 0] += image.shape[0]
+
+            if wrap_horizontal:
+                position[position[:,1] > image.shape[1], 1] -= image.shape[1]
+                position[position[:,1] < 0, 1] += image.shape[1]
+
+            out_of_bounds = np.any([(position[:,0] > image.shape[0]), (position[:,0] < 0), (position[:,1] > image.shape[1]), (position[:,1] < 0)], axis=0)
+            num_out_of_bounds = out_of_bounds.sum()
+            if num_out_of_bounds:
+                position[out_of_bounds] = np.random.random((num_out_of_bounds, 2))*np.array(image.shape[:2]).reshape((1,-1))
+
+        pixel = np.floor(position).astype(np.int32)
+        indices = pixel[:,0] + pixel[:,1]*image.shape[0]
+        final = np.zeros((flat_image.shape[0]), dtype=np.int32)
+        np.add.at(final, indices, 1)
+
+        trail_image = trail.reshape(image.shape[:2]).astype(np.float32) / np.max(trail)
+        final_image = final.reshape(image.shape[:2]).astype(np.float32) / np.max(final)
+
+        return final_image, trail_image
 
 # TODO
 # Perlin noise
@@ -270,5 +371,9 @@ class DrawCurve(NodeBase):
 # musgrave noise
 # Vector field from perlin noise
 # Warp an image with a vector field
-# skew
+# affine transform
+# map transforms (polar-cartesian)
+# procurstes analysis
 # UV mapping
+# background remover
+# img2depth
