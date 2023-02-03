@@ -324,6 +324,7 @@ class NoiseVectorField(NodeBase):
 class DistributionType(Enum):
     UNIFORM="UNIFORM"
 
+
 @NodeFactory.register("chainner:image:set_distribution")
 class SetDistributionNode(NodeBase):
     def __init__(self):
