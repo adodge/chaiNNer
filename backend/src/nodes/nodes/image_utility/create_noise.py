@@ -200,6 +200,7 @@ class NoiseEffect(NodeBase):
 
 @NodeFactory.register("chainner:image:extract_histogram")
 class IntensityHistogram(NodeBase):
+    # TODO make this work with all dtypes (I think it's busted for uint8)
     def __init__(self):
         super().__init__()
         self.description = "Count the proportion of different intensities in the input image and output a histogram. " \
@@ -343,45 +344,20 @@ class SetDistributionNode(NodeBase):
         self.sub = "Noise Effect"
 
     def run(self, image: np.ndarray, distribution_type: DistributionType):
-        image = dtype_convert(image, np.uint8) # TODO don't squash to 8 bit
         if image.ndim == 3:
             assert image.shape[2] == 1
-            image = image.reshape((image.shape[:2]))
+            image = image.reshape(image.shape[:2])
 
-        np.random.seed(0)
-
-        n_colors = 256
         n_pixels = image.size
-        output = np.zeros(image.shape[:2], dtype="uint8")
+        np.random.seed(0)
+        static = np.random.random(size=image.size)
+        color_indices = np.lexsort((static, image.ravel()))
+        target_colors = np.arange(n_pixels).astype(np.float32) / (n_pixels-1)
 
-        image_colors = np.sort(image.ravel())
+        output = np.zeros(image.size, dtype="float32")
+        np.put(output, color_indices, target_colors)
 
-        image_color_distribution = np.zeros((n_colors,n_colors), dtype=np.int32)
-
-        if distribution_type == DistributionType.UNIFORM:
-            pixels_per_color = n_pixels // n_colors
-            color2pixels = np.full(n_colors, fill_value=pixels_per_color, dtype="int32")
-            extra_pixels = n_pixels - pixels_per_color*n_colors
-            np.add.at(color2pixels, np.random.randint(0, n_colors, size=extra_pixels), 1)
-            assert color2pixels.sum() == n_pixels
-            target_colors = np.zeros(n_pixels, dtype="uint8")
-            s = 0
-            for c, n in enumerate(color2pixels):
-                target_colors[s:s+n] = c
-                s += n
-
-            for color, target in zip(image_colors, target_colors):
-                image_color_distribution[color, target] += 1
-
-        for row,col in [(r,c) for r in range(image.shape[0]) for c in range(image.shape[1])]:
-            ic = image[row,col]
-            dist = image_color_distribution[ic]
-            tc = np.random.choice(n_colors, size=1, p=dist/dist.sum())
-            image_color_distribution[ic,tc] -= 1
-            output[row,col] = tc
-
-        return output
-
+        return output.reshape(image.shape)
 
 
 @NodeFactory.register("chainner:image:simulate_particle_movement")
