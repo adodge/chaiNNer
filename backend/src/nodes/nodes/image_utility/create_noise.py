@@ -263,11 +263,31 @@ class DrawCurve(NodeBase):
         return output
 
 
+def dtype_convert(image: np.ndarray, target_dtype: np.dtype):
+    if image.dtype == target_dtype:
+        return image
+
+    image = dtype_to_float(image)
+    return float_to_dtype(image, target_dtype)
+
+
 def dtype_to_float(image: np.ndarray) -> np.ndarray:
     if image.dtype == np.dtype("float32"):
         return image
     max_value = np.iinfo(image.dtype).max
     return image.astype(np.dtype("float32")) / max_value
+
+
+def dtype_to_uint8(image: np.ndarray) -> np.ndarray:
+    return dtype_convert(image, np.dtype("uint8"))
+
+
+def float_to_dtype(image: np.ndarray, dtype: np.dtype) -> np.ndarray:
+    if image.dtype == dtype:
+        return image
+    max_value = np.iinfo(dtype).max
+    return (image * max_value).astype(dtype)
+
 
 
 @NodeFactory.register("chainner:image:create_vector_field")
@@ -298,6 +318,70 @@ class NoiseVectorField(NodeBase):
         radians = (image*d_angle + angle0) * np.pi / 180
         red, green, blue = np.cos(radians)/2+1/2, np.sin(radians)/2+1/2, np.zeros_like(image)
         return np.stack([blue,green,red], axis=2)
+
+
+class DistributionType(Enum):
+    UNIFORM="UNIFORM"
+
+@NodeFactory.register("chainner:image:set_distribution")
+class SetDistributionNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Takes a greyscale image and forces the colors into a particular distribution."
+        self.inputs = [
+            ImageInput(channels=1),
+            EnumInput(DistributionType, default_value=DistributionType.UNIFORM),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(size_as="Input0", channels=1),
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Set Distribution"
+        self.icon = "MdFormatColorFill"
+        self.sub = "Noise Effect"
+
+    def run(self, image: np.ndarray, distribution_type: DistributionType):
+        image = dtype_convert(image, np.uint8) # TODO don't squash to 8 bit
+        if image.ndim == 3:
+            assert image.shape[2] == 1
+            image = image.reshape((image.shape[:2]))
+
+        np.random.seed(0)
+
+        n_colors = 256
+        n_pixels = image.size
+        output = np.zeros(image.shape[:2], dtype="uint8")
+
+        image_colors = np.sort(image.ravel())
+
+        image_color_distribution = np.zeros((n_colors,n_colors), dtype=np.int32)
+
+        if distribution_type == DistributionType.UNIFORM:
+            pixels_per_color = n_pixels // n_colors
+            color2pixels = np.full(n_colors, fill_value=pixels_per_color, dtype="int32")
+            extra_pixels = n_pixels - pixels_per_color*n_colors
+            np.add.at(color2pixels, np.random.randint(0, n_colors, size=extra_pixels), 1)
+            assert color2pixels.sum() == n_pixels
+            target_colors = np.zeros(n_pixels, dtype="uint8")
+            s = 0
+            for c, n in enumerate(color2pixels):
+                target_colors[s:s+n] = c
+                s += n
+
+            for color, target in zip(image_colors, target_colors):
+                image_color_distribution[color, target] += 1
+
+        for row,col in [(r,c) for r in range(image.shape[0]) for c in range(image.shape[1])]:
+            ic = image[row,col]
+            dist = image_color_distribution[ic]
+            tc = np.random.choice(n_colors, size=1, p=dist/dist.sum())
+            image_color_distribution[ic,tc] -= 1
+            output[row,col] = tc
+
+        return output
+
 
 
 @NodeFactory.register("chainner:image:simulate_particle_movement")
@@ -369,7 +453,6 @@ class SimulateParticles(NodeBase):
 # Perlin noise
 # Voronoi noise
 # musgrave noise
-# Vector field from perlin noise
 # Warp an image with a vector field
 # affine transform
 # map transforms (polar-cartesian)
