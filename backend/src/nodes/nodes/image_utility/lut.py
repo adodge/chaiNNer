@@ -1,5 +1,6 @@
 from __future__ import annotations
 import numpy as np
+from sanic.log import logger
 
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
@@ -64,3 +65,44 @@ class LutNode(NodeBase):
 
         # only use top row of lut
         return np.take(lut[0], img, axis=0)
+
+
+@NodeFactory.register("chainner:image:lut_2d")
+class Lut2DNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = (
+            "Takes an image with UV coordinates and a texture, returning the image with colors from the texture"
+        )
+        self.inputs = [
+            ImageInput(channels=3),
+            ImageInput("Texture"),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(size_as="Input0", channels_as="Input1")
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Apply UV Map"
+        self.icon = "MdGradient"
+        self.sub = "Miscellaneous"
+
+    def run(
+        self,
+        img: np.ndarray,
+        texture: np.ndarray,
+    ) -> np.ndarray:
+        h, w, c = get_h_w_c(texture)
+
+        red_channel,green_channel = 2,1
+
+        img[:,:,red_channel] = np.round(img[:,:,red_channel]*(h-1))
+        img[:,:,green_channel] = np.round(img[:,:,green_channel]*(w-1))
+
+        img = img.astype(np.uint32)
+
+        indices = (img[:,:,red_channel] * w + img[:,:,green_channel]).ravel()
+        output = texture.reshape((-1, c))[indices]
+
+        return output.reshape([img.shape[0], img.shape[1], c])
