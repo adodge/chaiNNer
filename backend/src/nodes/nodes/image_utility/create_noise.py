@@ -430,10 +430,17 @@ class SimulateParticles(NodeBase):
 # Perlin noise
 # Voronoi noise
 # musgrave noise
+
+# spherical tiling
+
 # Warp an image with a vector field
 # affine transform
 # map transforms (polar-cartesian)
+
+# lighting post-processing with normal map
+
 # procurstes analysis
-# UV mapping
+
 # background remover
 # img2depth
+# feather, grow, and shrink greyscale maps
