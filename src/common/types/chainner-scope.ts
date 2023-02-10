@@ -69,6 +69,8 @@ struct OnnxModel {
     outputChannels: int(1..),
 }
 
+struct SDKitModel;
+
 struct IteratorAuto;
 
 // various inputs
