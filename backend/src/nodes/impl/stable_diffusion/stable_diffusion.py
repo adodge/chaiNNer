@@ -8,26 +8,25 @@ from sdkit.generate import generate_images
 
 
 class StableDiffusion:
-    def __init__(self, context: sdkit.Context):
-        self.context = context
+    def __init__(self, model):
+        self.model = model
 
     @classmethod
     def from_file(cls, path: str):
         context = sdkit.Context()
+        context.vram_usage_level = 'high'
         context.model_paths["stable-diffusion"] = path
-        return cls(context)
+        load_model(context, "stable-diffusion")
+        return cls(context.models['stable-diffusion'])
 
     @torch.inference_mode()
     def forward(self, prompt: str) -> np.ndarray:
-        load_model(self.context, "stable-diffusion")
 
-        images: List[Image] = generate_images(context=self.context, prompt=prompt)
+        context = sdkit.Context()
+        context.vram_usage_level = 'high'
+        context.models['stable-diffusion'] = self.model
+
+        images: List[Image] = generate_images(context=context, prompt=prompt)
         image = np.array(images[0])
-
-        unload_model(self.context, "stable-diffusion")
-
-        # XXX TODO Would be very nice to not load and unload the model completely every time. Need to figure out a
-        #  way to load_model an sdkit.Context to cpu, pass that around, and send it to the gpu when we want to run.
-        #  like ONNX or PyTorch
 
         return image

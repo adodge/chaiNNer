@@ -704,7 +704,7 @@ class NcnnModel:
 
 class NcnnModelWrapper:
     def __init__(self, model: NcnnModel) -> None:
-        self.model: NcnnModel = model
+        self.model: NcannModel = model
         scale, in_nc, out_nc, nf, fp = NcnnModelWrapper.get_broadcast_data(model)
         self.scale: int = scale
         self.nf: int = nf

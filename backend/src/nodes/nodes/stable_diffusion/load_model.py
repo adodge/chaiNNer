@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import os
+import pickle
 from typing import Tuple
 
 
 from . import category as StableDiffusionCategory
 from nodes.impl.stable_diffusion.types import SDKitModel
+from ...impl.stable_diffusion.stable_diffusion import StableDiffusion
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import PthFileInput
@@ -38,10 +40,7 @@ class LoadModelNode(NodeBase):
 
         dirname, basename, _ = split_file_path(path)
 
-        serialized_model = json.dumps(
-            {
-                "path": path,
-            }
-        ).encode("utf-8")
+        sd = StableDiffusion.from_file(path)
+        model = SDKitModel(sd)
 
-        return SDKitModel(serialized_model), dirname, basename
+        return model, dirname, basename

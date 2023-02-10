@@ -93,17 +93,6 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             description:
                 'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
         },
-        {
-            name: 'Stable-Diffusion',
-            packages: [
-                {
-                    packageName: 'https://github.com/adodge/sdkit',
-                    version: '1.0.35',
-                    sizeEstimate: 356 * KB,
-                },
-            ],
-            description: 'Stable Diffusion uses sdkit',
-        },
     ];
 };
 
