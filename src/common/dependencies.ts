@@ -97,13 +97,12 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             name: 'Stable-Diffusion',
             packages: [
                 {
-                    packageName: 'sdkit',
+                    packageName: 'https://github.com/adodge/sdkit',
                     version: '1.0.35',
                     sizeEstimate: 356 * KB,
                 },
             ],
-            description:
-                'Stable Diffusion uses sdkit',
+            description: 'Stable Diffusion uses sdkit',
         },
     ];
 };
