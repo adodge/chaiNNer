@@ -4,7 +4,6 @@ import json
 import os
 from typing import Tuple
 
-from sanic.log import logger
 
 from . import category as StableDiffusionCategory
 from nodes.impl.stable_diffusion.types import SDKitModel
@@ -33,15 +32,16 @@ class LoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, path: str) -> Tuple[SDKitModel, str, str]:
-
         assert os.path.exists(path), f"Model file at location {path} does not exist"
 
         assert os.path.isfile(path), f"Path {path} is not a file"
 
         dirname, basename, _ = split_file_path(path)
 
-        serialized_model = json.dumps({
-            "path": path,
-        }).encode('utf-8')
+        serialized_model = json.dumps(
+            {
+                "path": path,
+            }
+        ).encode("utf-8")
 
         return SDKitModel(serialized_model), dirname, basename

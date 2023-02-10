@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 import numpy as np
-from sanic.log import logger
 
 from . import category as StableDiffusionCategory
 from nodes.impl.stable_diffusion.types import SDKitModel
@@ -39,8 +38,7 @@ class FaceUpscaleNode(NodeBase):
         model: SDKitModel,
         prompt: str,
     ) -> np.ndarray:
-
         data = json.loads(model.bytes)
-        sd = StableDiffusion.from_file(data['path'])
+        sd = StableDiffusion.from_file(data["path"])
         image = sd.forward(prompt)
         return image
