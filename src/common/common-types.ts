@@ -136,7 +136,12 @@ export type OutputKind =
     | 'pytorch'
     | 'ncnn'
     | 'onnx'
-    | 'generic';
+    | 'generic'
+    | 'stable-diffusion'
+    | 'vae'
+    | 'clip'
+    | 'conditioning'
+    | 'latent-image';
 
 export interface Output {
     readonly id: OutputId;

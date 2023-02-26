@@ -79,6 +79,13 @@ let OnnxGenericModel = OnnxModel {
     subType: "Generic",
 };
 
+struct CkptFile { path: string }
+struct StableDiffusionModel;
+struct CLIPModel;
+struct VAEModel;
+struct Conditioning;
+struct LatentImage;
+
 struct IteratorAuto;
 
 // various inputs
