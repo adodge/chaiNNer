@@ -66,11 +66,11 @@ class KSamplerNode(NodeBase):
 
     def run(self, model: StableDiffusionModel, positive: Conditioning, negative: Conditioning, latent_image: LatentImage,
             denoising_strength: float, seed: int, steps: int, sampler: comfy.Sampler, scheduler: comfy.Scheduler,
-            cfg_strength: float) -> LatentImage:
+            cfg_scale: float) -> LatentImage:
 
         img = model.sample(
             positive=positive, negative=negative, latent_image=latent_image,
-            seed=seed, steps=steps, cfg_strength=cfg_strength,
+            seed=seed, steps=steps, cfg_scale=cfg_scale,
             sampler=sampler, scheduler=scheduler, denoise_strength=denoising_strength,
         )
 
