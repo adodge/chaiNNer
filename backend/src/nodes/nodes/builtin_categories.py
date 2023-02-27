@@ -6,10 +6,10 @@ from .image_dimension import category as ImageDimensionCategory
 from .image_filter import category as ImageFilterCategory
 from .image_utility import category as ImageUtilityCategory
 from .material_textures import category as MaterialTexturesCategory
-from .stable_diffusion import category as StableDiffusionCategory
 from .ncnn import category as NCNNCategory
 from .onnx import category as ONNXCategory
 from .pytorch import category as PyTorchCategory
+from .stable_diffusion import category as StableDiffusionCategory
 from .utility import category as UtilityCategory
 
 builtin_categories = [

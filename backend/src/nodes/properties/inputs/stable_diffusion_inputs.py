@@ -1,9 +1,11 @@
+from ..expression import ExpressionJson
 from .base_input import BaseInput
-from ..expression import ExpressionJson, intersect
 
 
 class StableDiffusionModelInput(BaseInput):
-    def __init__(self, label: str = "Model", input_type: ExpressionJson = "StableDiffusionModel"):
+    def __init__(
+        self, label: str = "Model", input_type: ExpressionJson = "StableDiffusionModel"
+    ):
         super().__init__(input_type, label)
 
 
@@ -18,10 +20,14 @@ class VAEModelInput(BaseInput):
 
 
 class ConditioningInput(BaseInput):
-    def __init__(self, label: str = "Conditioning", input_type: ExpressionJson = "Conditioning"):
+    def __init__(
+        self, label: str = "Conditioning", input_type: ExpressionJson = "Conditioning"
+    ):
         super().__init__(input_type, label)
 
 
 class LatentImageInput(BaseInput):
-    def __init__(self, label: str = "Latent", input_type: ExpressionJson = "LatentImage"):
+    def __init__(
+        self, label: str = "Latent", input_type: ExpressionJson = "LatentImage"
+    ):
         super().__init__(input_type, label)

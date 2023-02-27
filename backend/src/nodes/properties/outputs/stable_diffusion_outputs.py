@@ -1,5 +1,5 @@
-from .base_output import BaseOutput, OutputKind
 from .. import expression
+from .base_output import BaseOutput, OutputKind
 
 
 class StableDiffusionModelOutput(BaseOutput):
@@ -7,7 +7,7 @@ class StableDiffusionModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "StableDiffusionModel",
         label: str = "Model",
-        kind: OutputKind = "generic"
+        kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)
 
@@ -17,7 +17,7 @@ class CLIPModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "CLIPModel",
         label: str = "CLIP",
-        kind: OutputKind = "generic"
+        kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)
 
@@ -27,7 +27,7 @@ class VAEModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "VAEModel",
         label: str = "VAE",
-        kind: OutputKind = "generic"
+        kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)
 
@@ -37,7 +37,7 @@ class ConditioningOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "Conditioning",
         label: str = "Conditioning",
-        kind: OutputKind = "generic"
+        kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)
 
@@ -47,6 +47,6 @@ class LatentImageOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "LatentImage",
         label: str = "Latent",
-        kind: OutputKind = "generic"
+        kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)

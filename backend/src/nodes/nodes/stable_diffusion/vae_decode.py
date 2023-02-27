@@ -1,21 +1,15 @@
 from __future__ import annotations
 
-from typing import Tuple, Optional
-
 import comfy
 import cv2
 import numpy as np
 
-from ...impl.stable_diffusion.types import StableDiffusionModel, Conditioning, LatentImage
-
-from ...node_base import NodeBase, group
+from ...impl.stable_diffusion.types import LatentImage
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import TextAreaInput, SliderInput, NumberInput, EnumInput
-from ...properties.inputs.stable_diffusion_inputs import CLIPModelInput, LatentImageInput, ConditioningInput, \
-    StableDiffusionModelInput, VAEModelInput
-from . import category as StableDiffusionCategory
+from ...properties.inputs.stable_diffusion_inputs import LatentImageInput, VAEModelInput
 from ...properties.outputs import ImageOutput
-from ...properties.outputs.stable_diffusion_outputs import ConditioningOutput, LatentImageOutput
+from . import category as StableDiffusionCategory
 
 
 @NodeFactory.register("chainner:stable_diffusion:vae_decode")

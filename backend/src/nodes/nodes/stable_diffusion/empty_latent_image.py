@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from typing import Tuple, Optional
-
-
-from ...impl.stable_diffusion.types import CLIPModel, Conditioning, LatentImage
-
+from ...impl.stable_diffusion.types import LatentImage
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import TextAreaInput, SliderInput
-from ...properties.inputs.stable_diffusion_inputs import CLIPModelInput
+from ...properties.inputs import SliderInput
+from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
 from . import category as StableDiffusionCategory
-from ...properties.outputs.stable_diffusion_outputs import ConditioningOutput, LatentImageOutput
 
 
 @NodeFactory.register("chainner:stable_diffusion:empty_latent_image")

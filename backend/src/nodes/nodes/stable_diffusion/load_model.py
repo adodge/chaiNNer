@@ -5,13 +5,16 @@ from typing import Tuple
 
 import comfy
 
-from ...impl.stable_diffusion.types import StableDiffusionModel, VAEModel, CLIPModel
-
+from ...impl.stable_diffusion.types import CLIPModel, StableDiffusionModel, VAEModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import PthFileInput, CkptFileInput
+from ...properties.inputs import CkptFileInput
 from ...properties.outputs import DirectoryOutput, FileNameOutput
-from ...properties.outputs.stable_diffusion_outputs import StableDiffusionModelOutput, CLIPModelOutput, VAEModelOutput
+from ...properties.outputs.stable_diffusion_outputs import (
+    CLIPModelOutput,
+    StableDiffusionModelOutput,
+    VAEModelOutput,
+)
 from ...utils.utils import split_file_path
 from . import category as StableDiffusionCategory
 
@@ -35,13 +38,20 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> Tuple[StableDiffusionModel, CLIPModel, VAEModel, str, str]:
+    def run(
+        self, path: str
+    ) -> Tuple[StableDiffusionModel, CLIPModel, VAEModel, str, str]:
         assert os.path.exists(path), f"Model file at location {path} does not exist"
         assert os.path.isfile(path), f"Path {path} is not a file"
 
-        config = comfy.CheckpointConfig.from_built_in(comfy.BuiltInCheckpointConfigName.V1)
+        # TODO load V2 models, maybe auto-detect
+        config = comfy.CheckpointConfig.from_built_in(
+            comfy.BuiltInCheckpointConfigName.V1
+        )
 
-        sd, clip, vae = comfy.load_checkpoint(config=config, checkpoint_filepath=path, embedding_directory=None)
+        sd, clip, vae = comfy.load_checkpoint(
+            config=config, checkpoint_filepath=path, embedding_directory=None
+        )
 
         dirname, basename, _ = split_file_path(path)
         return sd, clip, vae, dirname, basename

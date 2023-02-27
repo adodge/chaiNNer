@@ -1,4 +1,4 @@
-from comfy import StableDiffusionModel, VAEModel, CLIPModel, LatentImage, Conditioning
+from comfy import CLIPModel, Conditioning, LatentImage, StableDiffusionModel, VAEModel
 
 __all__ = [
     "StableDiffusionModel",

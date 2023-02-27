@@ -80,6 +80,7 @@ let OnnxGenericModel = OnnxModel {
 };
 
 struct CkptFile { path: string }
+struct StableDiffusionPtFile { path: string }
 struct StableDiffusionModel;
 struct CLIPModel;
 struct VAEModel;

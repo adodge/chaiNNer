@@ -7,8 +7,19 @@ from base_types import OutputId
 from .. import expression
 
 OutputKind = Literal[
-    "image", "large-image", "text", "directory", "pytorch", "generic", "ncnn", "onnx",
-    "stable-diffusion", "clip", "vae", "conditioning", "latent-image",
+    "image",
+    "large-image",
+    "text",
+    "directory",
+    "pytorch",
+    "generic",
+    "ncnn",
+    "onnx",
+    "stable-diffusion",
+    "clip",
+    "vae",
+    "conditioning",
+    "latent-image",
 ]
 
 
