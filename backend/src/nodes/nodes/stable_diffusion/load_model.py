@@ -3,9 +3,14 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-import comfy
-
-from ...impl.stable_diffusion.types import CLIPModel, StableDiffusionModel, VAEModel
+from ...impl.stable_diffusion.types import (
+    BuiltInCheckpointConfigName,
+    CheckpointConfig,
+    CLIPModel,
+    StableDiffusionModel,
+    VAEModel,
+    load_checkpoint,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import CkptFileInput
@@ -45,11 +50,9 @@ class LoadModelNode(NodeBase):
         assert os.path.isfile(path), f"Path {path} is not a file"
 
         # TODO load V2 models, maybe auto-detect
-        config = comfy.CheckpointConfig.from_built_in(
-            comfy.BuiltInCheckpointConfigName.V1
-        )
+        config = CheckpointConfig.from_built_in(BuiltInCheckpointConfigName.V1)
 
-        sd, clip, vae = comfy.load_checkpoint(
+        sd, clip, vae = load_checkpoint(
             config=config, checkpoint_filepath=path, embedding_directory=None
         )
 

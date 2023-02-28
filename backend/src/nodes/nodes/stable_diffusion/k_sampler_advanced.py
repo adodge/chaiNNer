@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import comfy
-
 from ...impl.stable_diffusion.types import (
     Conditioning,
     LatentImage,
+    Sampler,
+    Scheduler,
     StableDiffusionModel,
 )
 from ...node_base import NodeBase, group
@@ -43,12 +43,12 @@ class KSamplerNode(NodeBase):
             ),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
             EnumInput(
-                comfy.Sampler,
-                default_value=comfy.Sampler.SAMPLE_EULER,
+                Sampler,
+                default_value=Sampler.SAMPLE_EULER,
             ),
             EnumInput(
-                comfy.Scheduler,
-                default_value=comfy.Scheduler.NORMAL,
+                Scheduler,
+                default_value=Scheduler.NORMAL,
             ),
             SliderInput(
                 "CFG Scale",
@@ -91,8 +91,8 @@ class KSamplerNode(NodeBase):
         denoising_strength: float,
         seed: int,
         steps: int,
-        sampler: comfy.Sampler,
-        scheduler: comfy.Scheduler,
+        sampler: Sampler,
+        scheduler: Scheduler,
         cfg_scale: float,
         start_at: int,
         end_at: int,

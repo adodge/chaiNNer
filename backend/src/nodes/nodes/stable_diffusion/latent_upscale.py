@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import comfy.latent_image
-
-from ...impl.stable_diffusion.types import LatentImage
+from ...impl.stable_diffusion.types import CropMethod, LatentImage, UpscaleMethod
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, SliderInput
@@ -19,12 +17,12 @@ class LatentUpscaleNode(NodeBase):
         self.inputs = [
             LatentImageInput(),
             EnumInput(
-                comfy.UpscaleMethod,
-                default_value=comfy.UpscaleMethod.BILINEAR,
+                UpscaleMethod,
+                default_value=UpscaleMethod.BILINEAR,
             ),
             EnumInput(
-                comfy.CropMethod,
-                default_value=comfy.CropMethod.DISABLED,
+                CropMethod,
+                default_value=CropMethod.DISABLED,
             ),
             SliderInput(
                 "width",
@@ -57,8 +55,8 @@ class LatentUpscaleNode(NodeBase):
     def run(
         self,
         latent_image: LatentImage,
-        upscale_method: comfy.latent_image.UpscaleMethod,
-        crop_method: comfy.latent_image.CropMethod,
+        upscale_method: UpscaleMethod,
+        crop_method: CropMethod,
         width: int,
         height: int,
     ) -> LatentImage:

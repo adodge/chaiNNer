@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import comfy
 import numpy as np
 from PIL import Image
 
+from ...impl.stable_diffusion.types import LatentImage, VAEModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -31,9 +31,7 @@ class VAEMaskedEncodeNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-    def run(
-        self, vae: comfy.VAEModel, image: np.ndarray, mask: np.ndarray
-    ) -> np.ndarray:
+    def run(self, vae: VAEModel, image: np.ndarray, mask: np.ndarray) -> LatentImage:
         img = Image.fromarray(image)
         mask_img = Image.fromarray(mask)
         latent = vae.masked_encode(img, mask_img)
