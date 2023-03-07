@@ -99,20 +99,32 @@ class KSamplerNode(NodeBase):
         add_noise: bool,
         return_with_leftover_noise: bool,
     ) -> LatentImage:
-        img = model.advanced_sample(
-            positive=positive,
-            negative=negative,
-            latent_image=latent_image,
-            seed=seed,
-            steps=steps,
-            cfg_scale=cfg_scale,
-            sampler=sampler,
-            scheduler=scheduler,
-            denoise_strength=denoising_strength,
-            start_at_step=start_at,
-            end_at_step=end_at,
-            add_noise=add_noise,
-            return_with_leftover_noise=return_with_leftover_noise,
-        )
 
-        return img
+        try:
+            model.to("cuda")
+            positive.to("cuda")
+            negative.to("cuda")
+            latent_image.to("cuda")
+
+            img = model.advanced_sample(
+                positive=positive,
+                negative=negative,
+                latent_image=latent_image,
+                seed=seed,
+                steps=steps,
+                cfg_scale=cfg_scale,
+                sampler=sampler,
+                scheduler=scheduler,
+                denoise_strength=denoising_strength,
+                start_at_step=start_at,
+                end_at_step=end_at,
+                add_noise=add_noise,
+                return_with_leftover_noise=return_with_leftover_noise,
+            )
+        finally:
+            model.to("cpu")
+            positive.to("cpu")
+            negative.to("cpu")
+            latent_image.to("cpu")
+
+        return img.to("cpu")

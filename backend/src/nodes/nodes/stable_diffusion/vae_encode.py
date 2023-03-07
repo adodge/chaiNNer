@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from PIL import Image
+from comfy.latent_image import RGBImage
 
 from ...impl.stable_diffusion.types import LatentImage, VAEModel
 from ...node_base import NodeBase
@@ -36,6 +37,10 @@ class VAEEncodeNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, vae: VAEModel, image: np.ndarray) -> LatentImage:
-        img = _array_to_image(image)
-        latent = vae.encode(img)
-        return latent
+        try:
+            vae.to("cuda")
+            img = RGBImage.from_image(_array_to_image(image)).to("cuda")
+            latent = vae.encode(img)
+        finally:
+            vae.to("cpu")
+        return latent.to("cpu")

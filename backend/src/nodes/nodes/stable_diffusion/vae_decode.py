@@ -30,7 +30,11 @@ class VAEDecodeNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, vae: VAEModel, latent_image: LatentImage) -> np.ndarray:
-        img = vae.decode(latent_image)
-        arr = np.array(img)
+        try:
+            vae.to("cuda")
+            img = vae.decode(latent_image)
+        finally:
+            vae.to("cpu")
+        arr = np.array(img.to_image())
         arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
         return arr

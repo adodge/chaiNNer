@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Optional
 
+import torch
+
 from ...impl.stable_diffusion.types import CLIPModel, Conditioning
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -29,7 +31,12 @@ class CLIPEncodeNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Conditioning"
 
+    @torch.no_grad()
     def run(self, clip: CLIPModel, prompt: Optional[str]) -> Conditioning:
         prompt = prompt or ""
-        out = clip.encode(prompt)
-        return out
+        try:
+            clip.to("cuda")
+            out = clip.encode(prompt)
+        finally:
+            clip.to("cpu")
+        return out.to("cpu")

@@ -81,16 +81,29 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> LatentImage:
-        img = model.sample(
-            positive=positive,
-            negative=negative,
-            latent_image=latent_image,
-            seed=seed,
-            steps=steps,
-            cfg_scale=cfg_scale,
-            sampler=sampler,
-            scheduler=scheduler,
-            denoise_strength=denoising_strength,
-        )
 
-        return img
+        try:
+            model.to("cuda")
+            positive.to("cuda")
+            negative.to("cuda")
+            latent_image.to("cuda")
+
+            img = model.sample(
+                positive=positive,
+                negative=negative,
+                latent_image=latent_image,
+                seed=seed,
+                steps=steps,
+                cfg_scale=cfg_scale,
+                sampler=sampler,
+                scheduler=scheduler,
+                denoise_strength=denoising_strength,
+            )
+
+        finally:
+            model.to("cpu")
+            positive.to("cpu")
+            negative.to("cpu")
+            latent_image.to("cpu")
+
+        return img.to("cpu")
