@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import torch
 from PIL import Image
 from comfy.latent_image import RGBImage
 
@@ -36,6 +37,7 @@ class VAEEncodeNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
+    @torch.no_grad()
     def run(self, vae: VAEModel, image: np.ndarray) -> LatentImage:
         try:
             vae.to("cuda")

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import torch
+
 from ...impl.stable_diffusion.types import (
     Conditioning,
     LatentImage,
@@ -82,6 +84,7 @@ class KSamplerNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Latent"
 
+    @torch.no_grad()
     def run(
         self,
         model: StableDiffusionModel,

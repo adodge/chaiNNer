@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import torch
 from PIL import Image
 from comfy.latent_image import RGBImage, GreyscaleImage
 
@@ -37,6 +38,7 @@ class VAEMaskedEncodeNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
+    @torch.no_grad()
     def run(self, vae: VAEModel, image: np.ndarray, mask: np.ndarray) -> LatentImage:
 
         try:

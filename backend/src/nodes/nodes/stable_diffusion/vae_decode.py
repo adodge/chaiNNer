@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
+import torch
 
 from ...impl.stable_diffusion.types import LatentImage, VAEModel
 from ...node_base import NodeBase
@@ -29,12 +30,15 @@ class VAEDecodeNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
+    @torch.no_grad()
     def run(self, vae: VAEModel, latent_image: LatentImage) -> np.ndarray:
         try:
             vae.to("cuda")
+            latent_image.to("cuda")
             img = vae.decode(latent_image)
         finally:
             vae.to("cpu")
+            latent_image.to("cpu")
         arr = np.array(img.to_image())
         arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
         return arr
