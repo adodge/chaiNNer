@@ -27,10 +27,10 @@ class KSamplerNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [
+            LatentImageInput(),
             StableDiffusionModelInput(),
             ConditioningInput("Positive Conditioning"),
             ConditioningInput("Negative Conditioning"),
-            LatentImageInput(),
             SliderInput(
                 "Denoising Strength",
                 minimum=0,
@@ -73,10 +73,10 @@ class KSamplerNode(NodeBase):
     @torch.no_grad()
     def run(
         self,
+        latent_image: LatentImage,
         model: StableDiffusionModel,
         positive: Conditioning,
         negative: Conditioning,
-        latent_image: LatentImage,
         denoising_strength: float,
         seed: int,
         steps: int,
@@ -86,10 +86,10 @@ class KSamplerNode(NodeBase):
     ) -> LatentImage:
 
         try:
-            model.to("cuda")
-            positive.to("cuda")
-            negative.to("cuda")
-            latent_image.to("cuda")
+            model.cuda()
+            positive.cuda()
+            negative.cuda()
+            latent_image.cuda()
 
             img = model.sample(
                 positive=positive,
@@ -104,9 +104,9 @@ class KSamplerNode(NodeBase):
             )
 
         finally:
-            model.to("cpu")
-            positive.to("cpu")
-            negative.to("cpu")
-            latent_image.to("cpu")
+            model.cpu()
+            positive.cpu()
+            negative.cpu()
+            latent_image.cpu()
 
-        return img.to("cpu")
+        return img.cpu()

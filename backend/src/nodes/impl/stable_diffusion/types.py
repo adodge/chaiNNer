@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+import numpy as np
+import cv2
+from PIL import Image
 from comfy.clip import CLIPModel
 from comfy.conditioning import Conditioning
-from comfy.latent_image import CropMethod, LatentImage, UpscaleMethod
+from comfy.latent_image import CropMethod, LatentImage, UpscaleMethod, RGBImage, GreyscaleImage
 from comfy.stable_diffusion import (
     BuiltInCheckpointConfigName,
     CheckpointConfig,
@@ -24,4 +29,17 @@ __all__ = [
     "StableDiffusionModel",
     "load_checkpoint",
     "VAEModel",
+    "RGBImage",
+    "GreyscaleImage",
 ]
+
+
+def array_to_image(arr: np.ndarray) -> Image:
+    arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+    arr = (np.clip(arr, 0, 1) * 255).round().astype("uint8")
+    return Image.fromarray(arr)
+
+
+def image_to_array(img: Image) -> np.ndarray:
+    arr = np.array(img)
+    return cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)

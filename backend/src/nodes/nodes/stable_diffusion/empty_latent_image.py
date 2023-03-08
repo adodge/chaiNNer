@@ -41,5 +41,4 @@ class EmptyLatentImageNode(NodeBase):
         self.sub = "Latent"
 
     def run(self, width: int, height: int) -> LatentImage:
-        img = LatentImage.empty(width, height)
-        return img
+        return LatentImage.empty(width, height)

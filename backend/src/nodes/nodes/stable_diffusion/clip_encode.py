@@ -35,8 +35,8 @@ class CLIPEncodeNode(NodeBase):
     def run(self, clip: CLIPModel, prompt: Optional[str]) -> Conditioning:
         prompt = prompt or ""
         try:
-            clip.to("cuda")
+            clip.cuda()
             out = clip.encode(prompt)
         finally:
-            clip.to("cpu")
-        return out.to("cpu")
+            clip.cuda()
+        return out.cpu()

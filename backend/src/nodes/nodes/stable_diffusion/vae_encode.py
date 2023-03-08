@@ -5,7 +5,7 @@ import torch
 from PIL import Image
 from comfy.latent_image import RGBImage
 
-from ...impl.stable_diffusion.types import LatentImage, VAEModel
+from ...impl.stable_diffusion.types import LatentImage, VAEModel, array_to_image
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -14,10 +14,6 @@ from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
 from . import category as StableDiffusionCategory
 
 
-def _array_to_image(arr: np.ndarray) -> Image:
-    arr = (np.clip(arr, 0, 1) * 255).round().astype("uint8")
-    return Image.fromarray(arr)
-
 
 @NodeFactory.register("chainner:stable_diffusion:vae_encode")
 class VAEEncodeNode(NodeBase):
@@ -25,8 +21,8 @@ class VAEEncodeNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [
-            VAEModelInput(),
             ImageInput(),
+            VAEModelInput(),
         ]
         self.outputs = [
             LatentImageOutput(),
@@ -38,11 +34,11 @@ class VAEEncodeNode(NodeBase):
         self.sub = "Input & Output"
 
     @torch.no_grad()
-    def run(self, vae: VAEModel, image: np.ndarray) -> LatentImage:
+    def run(self, image: np.ndarray, vae: VAEModel) -> LatentImage:
         try:
-            vae.to("cuda")
-            img = RGBImage.from_image(_array_to_image(image)).to("cuda")
+            vae.cuda()
+            img = RGBImage.from_image(array_to_image(image), device="cuda")
             latent = vae.encode(img)
         finally:
-            vae.to("cpu")
-        return latent.to("cpu")
+            vae.cpu()
+        return latent.cpu()

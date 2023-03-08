@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from PIL import Image
 from comfy.latent_image import RGBImage, GreyscaleImage
 
-from ...impl.stable_diffusion.types import LatentImage, VAEModel
+from ...impl.stable_diffusion.types import LatentImage, VAEModel, array_to_image
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -14,20 +13,15 @@ from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
 from . import category as StableDiffusionCategory
 
 
-def _array_to_image(arr: np.ndarray) -> Image:
-    arr = (np.clip(arr, 0, 1) * 255).round().astype("uint8")
-    return Image.fromarray(arr)
-
-
 @NodeFactory.register("chainner:stable_diffusion:vae_masked_encode")
 class VAEMaskedEncodeNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = ""
         self.inputs = [
-            VAEModelInput(),
             ImageInput(channels=3),
             ImageInput(channels=1),
+            VAEModelInput(),
         ]
         self.outputs = [
             LatentImageOutput(),
@@ -39,13 +33,13 @@ class VAEMaskedEncodeNode(NodeBase):
         self.sub = "Input & Output"
 
     @torch.no_grad()
-    def run(self, vae: VAEModel, image: np.ndarray, mask: np.ndarray) -> LatentImage:
+    def run(self, image: np.ndarray, mask: np.ndarray, vae: VAEModel) -> LatentImage:
 
         try:
-            vae.to("cuda")
-            img = RGBImage.from_image(_array_to_image(image)).to("cuda")
-            msk = GreyscaleImage.from_image(_array_to_image(mask)).to("cuda")
+            vae.cuda()
+            img = RGBImage.from_image(array_to_image(image), device="cuda")
+            msk = GreyscaleImage.from_image(array_to_image(mask), device="cuda")
             latent = vae.masked_encode(img, msk)
         finally:
-            vae.to("cpu")
-        return latent.to("cpu")
+            vae.cpu()
+        return latent.cpu()
