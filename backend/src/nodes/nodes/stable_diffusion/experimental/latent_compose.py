@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from ...impl.stable_diffusion.types import LatentImage
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import SliderInput
-from ...properties.inputs.stable_diffusion_inputs import LatentImageInput
-from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
-from . import category as StableDiffusionCategory
+from nodes.impl.stable_diffusion.types import LatentImage
+from nodes.node_base import NodeBase
+from nodes.node_factory import NodeFactory
+from nodes.properties.inputs import SliderInput
+from nodes.properties.inputs.stable_diffusion_inputs import LatentImageInput
+from nodes.properties.outputs.stable_diffusion_outputs import LatentImageOutput
+from nodes.nodes.stable_diffusion import category as StableDiffusionCategory
 
 
 @NodeFactory.register("chainner:stable_diffusion:latent_compose")
