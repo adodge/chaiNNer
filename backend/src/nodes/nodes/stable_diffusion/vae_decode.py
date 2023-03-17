@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cv2
 import numpy as np
 import torch
 
@@ -39,4 +40,4 @@ class VAEDecodeNode(NodeBase):
             vae.cpu()
             latent_image.cpu()
 
-        return img.to_array()
+        return cv2.cvtColor(img.to_array(), cv2.COLOR_RGB2BGR)

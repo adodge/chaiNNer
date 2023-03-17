@@ -1,46 +1,82 @@
-import { NamedExpression } from '@chainner/navi';
-import { memo, useEffect, useMemo } from 'react';
+import { literal } from '@chainner/navi';
+import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
+import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { isStartingNode } from '../../../common/util';
+import { EdgeData, NodeData, SchemaId } from '../../../common/common-types';
+import { struct } from '../../../common/types/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { ModelDataTags } from './elements/ModelDataTags';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
+const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
+
+interface LatentImageBroadcastData {
+    width: number;
+    height: number;
+}
+
 export const LatentImageOutput = memo(
-    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+    ({ label, id, outputId, schemaId, useOutputData }: OutputProps) => {
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const { current } = useOutputData(outputId);
+        const { selectNode, setManualOutputType, createNode, createConnection } =
+            useContext(GlobalContext);
 
-        const { setManualOutputType } = useContext(GlobalContext);
-        const { schemata } = useContext(BackendContext);
+        const outputIndex = useContextSelector(BackendContext, (c) =>
+            c.schemata.get(schemaId).outputs.findIndex((o) => o.id === outputId)
+        );
 
-        const schema = schemata.get(schemaId);
-
+        const { current } = useOutputData<LatentImageBroadcastData>(outputId);
         useEffect(() => {
-            if (isStartingNode(schema)) {
-                if (current) {
-                    setManualOutputType(id, outputId, new NamedExpression('LatentImage'));
-                } else {
-                    setManualOutputType(id, outputId, undefined);
-                }
+            if (current) {
+                setManualOutputType(
+                    id,
+                    outputId,
+                    struct('Image', {
+                        width: literal(current.width),
+                        height: literal(current.height),
+                    })
+                );
+            } else {
+                setManualOutputType(id, outputId, undefined);
             }
-        }, [id, schemaId, current, outputId, schema, setManualOutputType]);
+        }, [id, outputId, current, setManualOutputType]);
 
-        const tags = useMemo(() => {
-            if (!current) return undefined;
-
-            return [];
-        }, [current]);
+        const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
         return (
-            <ModelDataTags
-                loading={animated}
-                tags={tags}
-            />
+            <Flex
+                h="full"
+                minH="2rem"
+                verticalAlign="middle"
+                w="full"
+            >
+                <Spacer />
+                {type && (
+                    <Center
+                        h="2rem"
+                        verticalAlign="middle"
+                    >
+                        <TypeTags
+                            isOptional={false}
+                            type={type}
+                        />
+                    </Center>
+                )}
+                <Text
+                    h="full"
+                    lineHeight="2rem"
+                    marginInlineEnd="0.5rem"
+                    ml={1}
+                    textAlign="right"
+                >
+                    {label}
+                </Text>
+            </Flex>
         );
     }
 );

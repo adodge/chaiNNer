@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from ...group import group
+from ...impl.external_stable_diffusion import nearest_valid_size
 from ...impl.stable_diffusion.types import (
     CLIPModel,
     LatentImage,
@@ -76,7 +77,14 @@ class KSamplerNode(NodeBase):
             ),
         ]
         self.outputs = [
-            ImageOutput(),
+            ImageOutput(
+                image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+                        Image {
+                            width: nearest_valid(Input3),
+                            height: nearest_valid(Input4)
+                        }""",
+                channels=3,
+            ),
         ]
 
         self.category = StableDiffusionCategory
@@ -100,6 +108,11 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> np.ndarray:
+
+        width, height = nearest_valid_size(
+            width, height, step=64
+        )  # This cooperates with the "image_type" of the ImageOutput
+
         positive = positive or ""
         negative = negative or ""
 
@@ -135,4 +148,4 @@ class KSamplerNode(NodeBase):
         finally:
             vae.cpu()
 
-        return out.to_array()
+        return cv2.cvtColor(out.to_array(), cv2.COLOR_RGB2BGR)

@@ -7,6 +7,8 @@ import numpy as np
 import torch
 
 from ...group import group
+from ...impl.external_stable_diffusion import nearest_valid_size
+from ...impl.pil_utils import resize, InterpolationMethod
 from ...impl.stable_diffusion.types import (
     CLIPModel,
     RGBImage,
@@ -32,6 +34,7 @@ from ...properties.inputs.stable_diffusion_inputs import (
 )
 from ...properties.outputs import ImageOutput
 from . import category as StableDiffusionCategory
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:stable_diffusion:image2image")
@@ -40,7 +43,7 @@ class KSamplerNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [
-            ImageInput(),
+            ImageInput(channels=3),
             StableDiffusionModelInput(),
             CLIPModelInput(),
             VAEModelInput(),
@@ -49,7 +52,7 @@ class KSamplerNode(NodeBase):
             SliderInput(
                 "Denoising Strength",
                 minimum=0,
-                default=1,
+                default=0.75,
                 maximum=1,
                 slider_step=0.01,
                 controls_step=0.1,
@@ -77,7 +80,14 @@ class KSamplerNode(NodeBase):
             ),
         ]
         self.outputs = [
-            ImageOutput(),
+            ImageOutput(
+                image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+                Image {
+                    width: nearest_valid(Input0.width),
+                    height: nearest_valid(Input0.height)
+                }""",
+                channels=3,
+            ),
         ]
 
         self.category = StableDiffusionCategory
@@ -101,6 +111,16 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> np.ndarray:
+
+        height, width, _ = get_h_w_c(input_image)
+
+        width1, height1 = nearest_valid_size(
+            width, height, step=64
+        )  # This cooperates with the "image_type" of the ImageOutput
+
+        if width1 != width or height1 != height:
+            input_image = resize(input_image, (width1, height1), InterpolationMethod.AUTO)
+
         positive = positive or ""
         negative = negative or ""
 
@@ -143,4 +163,4 @@ class KSamplerNode(NodeBase):
         finally:
             vae.cpu()
 
-        return out.to_array()
+        return cv2.cvtColor(out.to_array(), cv2.COLOR_RGB2BGR)

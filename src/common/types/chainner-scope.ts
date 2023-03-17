@@ -85,7 +85,10 @@ struct StableDiffusionModel;
 struct CLIPModel;
 struct VAEModel;
 struct Conditioning;
-struct LatentImage;
+struct LatentImage {
+    width: uint,
+    height: uint,
+}
 
 struct IteratorAuto;
 

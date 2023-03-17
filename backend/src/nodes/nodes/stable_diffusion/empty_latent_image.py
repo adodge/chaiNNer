@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ...impl.external_stable_diffusion import nearest_valid_size
 from ...impl.stable_diffusion.types import LatentImage
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -19,20 +20,26 @@ class EmptyLatentImageNode(NodeBase):
                 minimum=64,
                 default=512,
                 maximum=2048,
-                slider_step=8,
-                controls_step=8,
+                slider_step=64,
+                controls_step=64,
             ),
             SliderInput(
                 "Height",
                 minimum=64,
                 default=512,
                 maximum=2048,
-                slider_step=8,
-                controls_step=8,
+                slider_step=64,
+                controls_step=64,
             ),
         ]
         self.outputs = [
-            LatentImageOutput(),
+            LatentImageOutput(
+                image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+                LatentImage {
+                    width: nearest_valid(Input0),
+                    height: nearest_valid(Input1)
+                }""",
+            ),
         ]
 
         self.category = StableDiffusionCategory
@@ -41,4 +48,8 @@ class EmptyLatentImageNode(NodeBase):
         self.sub = "Latent"
 
     def run(self, width: int, height: int) -> LatentImage:
+        width, height = nearest_valid_size(
+            width, height, step=64
+        )
+
         return LatentImage.empty(width, height)
