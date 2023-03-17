@@ -49,11 +49,8 @@ class LoadModelNode(NodeBase):
         assert os.path.exists(path), f"Model file at location {path} does not exist"
         assert os.path.isfile(path), f"Path {path} is not a file"
 
-        # TODO load V2 models, maybe auto-detect
-        config = CheckpointConfig.from_built_in(BuiltInCheckpointConfigName.V1)
-
         sd, clip, vae = load_checkpoint(
-            config=config, checkpoint_filepath=path, embedding_directory=None
+            checkpoint_filepath=path, embedding_directory=None
         )
 
         dirname, basename, _ = split_file_path(path)

@@ -81,8 +81,8 @@ let OnnxGenericModel = OnnxModel {
 
 struct CkptFile { path: string }
 struct StableDiffusionPtFile { path: string }
-struct StableDiffusionModel;
-struct CLIPModel;
+struct StableDiffusionModel { version: string }
+struct CLIPModel { version: string }
 struct VAEModel;
 struct Conditioning;
 struct LatentImage {

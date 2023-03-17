@@ -26,7 +26,11 @@ class VAEEncodeNode(NodeBase):
             VAEModelInput(),
         ]
         self.outputs = [
-            LatentImageOutput(),
+            LatentImageOutput(image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+                LatentImage {
+                    width: nearest_valid(Input0.width),
+                    height: nearest_valid(Input0.height)
+                }""",),
         ]
 
         self.category = StableDiffusionCategory

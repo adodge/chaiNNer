@@ -30,6 +30,18 @@ export const isImage = (
     return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
 };
 
+export const isLatentImage = (
+    type: Type
+): type is StructType & {
+    readonly name: 'LatentImage';
+    readonly fields: readonly [
+        { readonly name: 'width'; readonly type: IntNumberType },
+        { readonly name: 'height'; readonly type: IntNumberType }
+    ];
+} => {
+    return type.type === 'struct' && type.name === 'LatentImage' && type.fields.length === 2;
+};
+
 export const isDirectory = (
     type: Type
 ): type is StructType & {

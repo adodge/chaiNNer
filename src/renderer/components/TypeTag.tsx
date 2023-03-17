@@ -2,7 +2,13 @@ import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/na
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getField, isDirectory, isImage, withoutNull } from '../../common/types/util';
+import {
+    getField,
+    isDirectory,
+    isImage,
+    isLatentImage,
+    withoutNull,
+} from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -45,6 +51,16 @@ const getTypeText = (type: Type): TagValue[] => {
             }
         }
 
+        if (isLatentImage(type)) {
+            const [width, height] = type.fields;
+            if (isNumericLiteral(width.type) && isNumericLiteral(height.type)) {
+                tags.push({
+                    kind: 'literal',
+                    value: `${width.type.toString()}x${height.type.toString()}`,
+                });
+            }
+        }
+
         if (isDirectory(type)) {
             const [path] = type.fields;
 
@@ -65,6 +81,13 @@ const getTypeText = (type: Type): TagValue[] => {
             const subType = getField(type, 'subType') ?? NeverType.instance;
             if (isStringLiteral(subType)) {
                 tags.push({ kind: 'literal', value: subType.value });
+            }
+        }
+
+        if (type.name === 'StableDiffusionModel' || type.name === 'CLIPModel') {
+            const modelVersion = getField(type, 'version') ?? NeverType.instance;
+            if (isStringLiteral(modelVersion)) {
+                tags.push({ kind: 'literal', value: modelVersion.value });
             }
         }
     }

@@ -63,7 +63,10 @@ class KSamplerNode(NodeBase):
             ),
         ]
         self.outputs = [
-            LatentImageOutput(),
+            LatentImageOutput(image_type="""LatentImage {
+                    width: Input0.width,
+                    height: Input0.height
+                }"""),
         ]
 
         self.category = StableDiffusionCategory

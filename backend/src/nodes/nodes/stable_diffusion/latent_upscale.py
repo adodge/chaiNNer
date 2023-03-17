@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ...impl.external_stable_diffusion import nearest_valid_size
 from ...impl.stable_diffusion.types import CropMethod, LatentImage, UpscaleMethod
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -44,7 +45,11 @@ class LatentUpscaleNode(NodeBase):
             ),
         ]
         self.outputs = [
-            LatentImageOutput(),
+            LatentImageOutput(image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+                LatentImage {
+                    width: nearest_valid(Input3),
+                    height: nearest_valid(Input4)
+                }"""),
         ]
 
         self.category = StableDiffusionCategory
@@ -60,4 +65,8 @@ class LatentUpscaleNode(NodeBase):
         width: int,
         height: int,
     ) -> LatentImage:
+        width, height = nearest_valid_size(
+            width, height, step=64
+        )
+
         return latent_image.upscale(width, height, upscale_method, crop_method)

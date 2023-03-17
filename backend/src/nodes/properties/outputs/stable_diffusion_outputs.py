@@ -1,8 +1,7 @@
-from nodes.impl.stable_diffusion.types import LatentImage
+from nodes.impl.stable_diffusion.types import LatentImage, StableDiffusionModel, CLIPModel
 
 from .. import expression
 from .base_output import BaseOutput, OutputKind
-from ...utils.utils import get_h_w_c
 
 
 class StableDiffusionModelOutput(BaseOutput):
@@ -14,6 +13,13 @@ class StableDiffusionModelOutput(BaseOutput):
     ):
         super().__init__(model_type, label, kind=kind)
 
+    def get_broadcast_data(self, value: StableDiffusionModel):
+        version = value.version
+
+        return {
+            "version": version.value,
+        }
+
 
 class CLIPModelOutput(BaseOutput):
     def __init__(
@@ -23,6 +29,13 @@ class CLIPModelOutput(BaseOutput):
         kind: OutputKind = "generic",
     ):
         super().__init__(model_type, label, kind=kind)
+
+    def get_broadcast_data(self, value: CLIPModel):
+        version = value.version
+
+        return {
+            "version": version.value,
+        }
 
 
 class VAEModelOutput(BaseOutput):

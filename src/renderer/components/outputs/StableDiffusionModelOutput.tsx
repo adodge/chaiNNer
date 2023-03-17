@@ -1,19 +1,20 @@
-import { NamedExpression } from '@chainner/navi';
+import { literal } from '@chainner/navi';
 import { memo, useEffect, useMemo } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
+interface StableDiffusionModelData {
+    version: string;
+}
+
 export const StableDiffusionModelOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(id)?.outputs.get(outputId)
-        );
-
-        const { current } = useOutputData(outputId);
+        const { current } = useOutputData<StableDiffusionModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
@@ -23,7 +24,13 @@ export const StableDiffusionModelOutput = memo(
         useEffect(() => {
             if (isStartingNode(schema)) {
                 if (current) {
-                    setManualOutputType(id, outputId, new NamedExpression('StableDiffusionModel'));
+                    setManualOutputType(
+                        id,
+                        outputId,
+                        struct('StableDiffusionModel', {
+                            version: literal(current.version),
+                        })
+                    );
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }
@@ -33,7 +40,7 @@ export const StableDiffusionModelOutput = memo(
         const tags = useMemo(() => {
             if (!current) return undefined;
 
-            return [];
+            return [current.version];
         }, [current]);
 
         return (
