@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-import numpy as np
 import cv2
-from PIL import Image
+import numpy as np
 from comfy.clip import CLIPModel
 from comfy.conditioning import Conditioning
-from comfy.latent_image import CropMethod, LatentImage, UpscaleMethod, RGBImage, GreyscaleImage
+from comfy.latent_image import (
+    CropMethod,
+    GreyscaleImage,
+    LatentImage,
+    RGBImage,
+    UpscaleMethod,
+)
 from comfy.stable_diffusion import (
     BuiltInCheckpointConfigName,
     CheckpointConfig,
@@ -15,6 +20,7 @@ from comfy.stable_diffusion import (
     load_checkpoint,
 )
 from comfy.vae import VAEModel
+from PIL import Image
 
 __all__ = [
     "CLIPModel",

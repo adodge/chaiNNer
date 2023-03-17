@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import torch
 
+from ...group import group
 from ...impl.stable_diffusion.types import (
     Conditioning,
     LatentImage,
@@ -9,7 +10,7 @@ from ...impl.stable_diffusion.types import (
     Scheduler,
     StableDiffusionModel,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput, SliderInput
 from ...properties.inputs.stable_diffusion_inputs import (
@@ -84,7 +85,6 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> LatentImage:
-
         try:
             model.cuda()
             positive.cuda()

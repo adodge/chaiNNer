@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from PIL import Image
 from comfy.latent_image import RGBImage
+from PIL import Image
 
 from ...impl.stable_diffusion.types import LatentImage, VAEModel, array_to_image
 from ...node_base import NodeBase
@@ -12,7 +12,6 @@ from ...properties.inputs import ImageInput
 from ...properties.inputs.stable_diffusion_inputs import VAEModelInput
 from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
 from . import category as StableDiffusionCategory
-
 
 
 @NodeFactory.register("chainner:stable_diffusion:vae_encode")

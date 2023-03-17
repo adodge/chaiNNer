@@ -6,20 +6,25 @@ import cv2
 import numpy as np
 import torch
 
-from . import category as StableDiffusionCategory
+from ...group import group
 from ...impl.stable_diffusion.types import (
+    CLIPModel,
     LatentImage,
     Sampler,
     Scheduler,
-    StableDiffusionModel, CLIPModel, VAEModel
+    StableDiffusionModel,
+    VAEModel,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextAreaInput
 from ...properties.inputs.stable_diffusion_inputs import (
-    StableDiffusionModelInput, CLIPModelInput, VAEModelInput,
+    CLIPModelInput,
+    StableDiffusionModelInput,
+    VAEModelInput,
 )
 from ...properties.outputs import ImageOutput
+from . import category as StableDiffusionCategory
 
 
 @NodeFactory.register("chainner:stable_diffusion:text2image")
@@ -81,21 +86,20 @@ class KSamplerNode(NodeBase):
 
     @torch.no_grad()
     def run(
-            self,
-            model: StableDiffusionModel,
-            clip: CLIPModel,
-            vae: VAEModel,
-            width: int,
-            height: int,
-            positive: Optional[str],
-            negative: Optional[str],
-            seed: int,
-            steps: int,
-            sampler: Sampler,
-            scheduler: Scheduler,
-            cfg_scale: float,
+        self,
+        model: StableDiffusionModel,
+        clip: CLIPModel,
+        vae: VAEModel,
+        width: int,
+        height: int,
+        positive: Optional[str],
+        negative: Optional[str],
+        seed: int,
+        steps: int,
+        sampler: Sampler,
+        scheduler: Scheduler,
+        cfg_scale: float,
     ) -> np.ndarray:
-
         positive = positive or ""
         negative = negative or ""
 
