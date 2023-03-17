@@ -143,6 +143,4 @@ class KSamplerNode(NodeBase):
         finally:
             vae.cpu()
 
-        arr = np.array(out.to_image())
-        arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-        return arr
+        return out.to_array()

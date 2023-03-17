@@ -38,4 +38,5 @@ class VAEDecodeNode(NodeBase):
         finally:
             vae.cpu()
             latent_image.cpu()
-        return image_to_array(img.to_image())
+
+        return img.to_array()
