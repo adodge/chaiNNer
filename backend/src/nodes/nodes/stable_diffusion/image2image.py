@@ -127,9 +127,7 @@ class KSamplerNode(NodeBase):
 
         try:
             vae.cuda()
-            latent = vae.encode(
-                RGBImage.from_array(input_image, device="cuda")
-            )
+            latent = vae.encode(RGBImage.from_array(input_image, device="cuda"))
         finally:
             vae.cpu()
 
