@@ -12,6 +12,7 @@ from ...impl.stable_diffusion.types import (
 )
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import EnumInput, NumberInput, SliderInput
 from ...properties.inputs.stable_diffusion_inputs import (
     ConditioningInput,
@@ -30,8 +31,8 @@ class KSamplerNode(NodeBase):
         self.inputs = [
             LatentImageInput(),
             StableDiffusionModelInput(),
-            ConditioningInput("Positive Conditioning"),
-            ConditioningInput("Negative Conditioning"),
+            ConditioningInput("Positive Conditioning", input_type=expression.Conditioning(arch_as="Input1")),
+            ConditioningInput("Negative Conditioning", input_type=expression.Conditioning(arch_as="Input1")),
             SliderInput(
                 "Denoising Strength",
                 minimum=0,

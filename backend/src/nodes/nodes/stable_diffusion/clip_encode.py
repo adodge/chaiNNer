@@ -23,7 +23,9 @@ class CLIPEncodeNode(NodeBase):
             TextAreaInput("Prompt").make_optional(),
         ]
         self.outputs = [
-            ConditioningOutput(),
+            ConditioningOutput(model_type="""Conditioning {
+                arch: Input0.arch
+            }"""),
         ]
 
         self.category = StableDiffusionCategory

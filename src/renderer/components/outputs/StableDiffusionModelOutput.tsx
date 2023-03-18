@@ -1,19 +1,24 @@
 import { literal } from '@chainner/navi';
-import { memo, useEffect, useMemo } from 'react';
-import { useContext } from 'use-context-selector';
+import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { ModelDataTags } from './elements/ModelDataTags';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 interface StableDiffusionModelData {
-    version: string;
+    arch: string;
 }
 
 export const StableDiffusionModelOutput = memo(
-    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+    ({ label, id, outputId, schemaId, useOutputData }: OutputProps) => {
+        const type = useContextSelector(GlobalVolatileContext, (c) =>
+            c.typeState.functions.get(id)?.outputs.get(outputId)
+        );
+
         const { current } = useOutputData<StableDiffusionModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -28,7 +33,7 @@ export const StableDiffusionModelOutput = memo(
                         id,
                         outputId,
                         struct('StableDiffusionModel', {
-                            version: literal(current.version),
+                            arch: literal(current.arch),
                         })
                     );
                 } else {
@@ -37,17 +42,35 @@ export const StableDiffusionModelOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
-        const tags = useMemo(() => {
-            if (!current) return undefined;
-
-            return [current.version];
-        }, [current]);
-
         return (
-            <ModelDataTags
-                loading={animated}
-                tags={tags}
-            />
+            <Flex
+                h="full"
+                minH="2rem"
+                verticalAlign="middle"
+                w="full"
+            >
+                <Spacer />
+                {type && (
+                    <Center
+                        h="2rem"
+                        verticalAlign="middle"
+                    >
+                        <TypeTags
+                            isOptional={false}
+                            type={type}
+                        />
+                    </Center>
+                )}
+                <Text
+                    h="full"
+                    lineHeight="2rem"
+                    marginInlineEnd="0.5rem"
+                    ml={1}
+                    textAlign="right"
+                >
+                    {label}
+                </Text>
+            </Flex>
         );
     }
 );

@@ -31,9 +31,9 @@ class LoadModelNode(NodeBase):
         self.description = ""
         self.inputs = [CkptFileInput(primary_input=True)]
         self.outputs = [
-            StableDiffusionModelOutput(),
-            CLIPModelOutput(),
-            VAEModelOutput(),
+            StableDiffusionModelOutput(kind="stable-diffusion", should_broadcast=True),
+            CLIPModelOutput(kind="clip", should_broadcast=True),
+            VAEModelOutput(should_broadcast=True),
             DirectoryOutput("Model Directory", of_input=0),
             FileNameOutput("Model Name", of_input=0),
         ]

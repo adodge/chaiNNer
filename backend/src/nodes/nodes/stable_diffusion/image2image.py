@@ -20,6 +20,7 @@ from ...impl.stable_diffusion.types import (
 )
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import (
     EnumInput,
     ImageInput,
@@ -45,7 +46,7 @@ class KSamplerNode(NodeBase):
         self.inputs = [
             ImageInput(channels=3),
             StableDiffusionModelInput(),
-            CLIPModelInput(),
+            CLIPModelInput(input_type=expression.CLIPModel(arch_as="Input1")),
             VAEModelInput(),
             TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),

@@ -1,9 +1,8 @@
 import { literal } from '@chainner/navi';
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData, SchemaId } from '../../../common/common-types';
+import { SchemaId } from '../../../common/common-types';
 import { struct } from '../../../common/types/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -46,8 +45,7 @@ export const LatentImageOutput = memo(
             }
         }, [id, outputId, current, setManualOutputType]);
 
-        const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
-
+        console.log(type);
         return (
             <Flex
                 h="full"

@@ -18,6 +18,7 @@ from ...impl.stable_diffusion.types import (
 )
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextAreaInput
 from ...properties.inputs.stable_diffusion_inputs import (
     CLIPModelInput,
@@ -35,7 +36,7 @@ class KSamplerNode(NodeBase):
         self.description = ""
         self.inputs = [
             StableDiffusionModelInput(),
-            CLIPModelInput(),
+            CLIPModelInput(input_type=expression.CLIPModel(arch_as="Input0")),
             VAEModelInput(),
             SliderInput(
                 "Width",
