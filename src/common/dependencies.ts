@@ -130,7 +130,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             packages: [
                 {
                     packageName: 'comfylib',
-                    version: '0.0.3',
+                    version: '0.0.5',
                     sizeEstimate: 3 * GB,
                 },
                 {
