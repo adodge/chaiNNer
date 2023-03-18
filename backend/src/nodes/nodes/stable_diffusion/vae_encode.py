@@ -6,7 +6,7 @@ from comfy.latent_image import RGBImage
 
 from ...impl.external_stable_diffusion import nearest_valid_size
 from ...impl.pil_utils import InterpolationMethod, resize
-from ...impl.stable_diffusion.types import LatentImage, VAEModel, array_to_image
+from ...impl.stable_diffusion.types import LatentImage, VAEModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -53,7 +53,7 @@ class VAEEncodeNode(NodeBase):
 
         try:
             vae.cuda()
-            img = RGBImage.from_image(array_to_image(image), device="cuda")
+            img = RGBImage.from_array(image, device="cuda")
             latent = vae.encode(img)
         finally:
             vae.cpu()

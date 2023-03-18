@@ -16,7 +16,6 @@ from ...impl.stable_diffusion.types import (
     Scheduler,
     StableDiffusionModel,
     VAEModel,
-    array_to_image,
 )
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -129,7 +128,7 @@ class KSamplerNode(NodeBase):
         try:
             vae.cuda()
             latent = vae.encode(
-                RGBImage.from_image(array_to_image(input_image), device="cuda")
+                RGBImage.from_array(input_image, device="cuda")
             )
         finally:
             vae.cpu()
