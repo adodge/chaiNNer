@@ -12,8 +12,8 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.inputs.stable_diffusion_inputs import VAEModelInput
 from ...properties.outputs.stable_diffusion_outputs import LatentImageOutput
-from . import category as StableDiffusionCategory
 from ...utils.utils import get_h_w_c
+from . import category as StableDiffusionCategory
 
 
 @NodeFactory.register("chainner:stable_diffusion:vae_encode")
@@ -26,11 +26,13 @@ class VAEEncodeNode(NodeBase):
             VAEModelInput(),
         ]
         self.outputs = [
-            LatentImageOutput(image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
+            LatentImageOutput(
+                image_type="""def nearest_valid(n: number) = int & floor(n / 64) * 64;
                 LatentImage {
                     width: nearest_valid(Input0.width),
                     height: nearest_valid(Input0.height)
-                }""",),
+                }""",
+            ),
         ]
 
         self.category = StableDiffusionCategory

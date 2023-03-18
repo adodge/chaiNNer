@@ -109,7 +109,6 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> np.ndarray:
-
         width, height = nearest_valid_size(
             width, height, step=64
         )  # This cooperates with the "image_type" of the ImageOutput

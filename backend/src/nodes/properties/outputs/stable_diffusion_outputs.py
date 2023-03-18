@@ -1,4 +1,8 @@
-from nodes.impl.stable_diffusion.types import LatentImage, StableDiffusionModel, CLIPModel
+from nodes.impl.stable_diffusion.types import (
+    CLIPModel,
+    LatentImage,
+    StableDiffusionModel,
+)
 
 from .. import expression
 from .base_output import BaseOutput, OutputKind
@@ -94,6 +98,6 @@ class LatentImageOutput(BaseOutput):
         w, h = value.size()
 
         return {
-            "height": h*64,
-            "width": w*64,
+            "height": h * 64,
+            "width": w * 64,
         }

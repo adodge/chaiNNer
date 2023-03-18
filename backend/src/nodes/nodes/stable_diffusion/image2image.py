@@ -8,7 +8,7 @@ import torch
 
 from ...group import group
 from ...impl.external_stable_diffusion import nearest_valid_size
-from ...impl.pil_utils import resize, InterpolationMethod
+from ...impl.pil_utils import InterpolationMethod, resize
 from ...impl.stable_diffusion.types import (
     CLIPModel,
     RGBImage,
@@ -34,8 +34,8 @@ from ...properties.inputs.stable_diffusion_inputs import (
     VAEModelInput,
 )
 from ...properties.outputs import ImageOutput
-from . import category as StableDiffusionCategory
 from ...utils.utils import get_h_w_c
+from . import category as StableDiffusionCategory
 
 
 @NodeFactory.register("chainner:stable_diffusion:image2image")
@@ -112,7 +112,6 @@ class KSamplerNode(NodeBase):
         scheduler: Scheduler,
         cfg_scale: float,
     ) -> np.ndarray:
-
         height, width, _ = get_h_w_c(input_image)
 
         width1, height1 = nearest_valid_size(
@@ -120,7 +119,9 @@ class KSamplerNode(NodeBase):
         )  # This cooperates with the "image_type" of the ImageOutput
 
         if width1 != width or height1 != height:
-            input_image = resize(input_image, (width1, height1), InterpolationMethod.AUTO)
+            input_image = resize(
+                input_image, (width1, height1), InterpolationMethod.AUTO
+            )
 
         positive = positive or ""
         negative = negative or ""

@@ -31,8 +31,14 @@ class KSamplerNode(NodeBase):
         self.inputs = [
             LatentImageInput(),
             StableDiffusionModelInput(),
-            ConditioningInput("Positive Conditioning", input_type=expression.Conditioning(arch_as="Input1")),
-            ConditioningInput("Negative Conditioning", input_type=expression.Conditioning(arch_as="Input1")),
+            ConditioningInput(
+                "Positive Conditioning",
+                input_type=expression.Conditioning(arch_as="Input1"),
+            ),
+            ConditioningInput(
+                "Negative Conditioning",
+                input_type=expression.Conditioning(arch_as="Input1"),
+            ),
             SliderInput(
                 "Denoising Strength",
                 minimum=0,
@@ -64,10 +70,12 @@ class KSamplerNode(NodeBase):
             ),
         ]
         self.outputs = [
-            LatentImageOutput(image_type="""LatentImage {
+            LatentImageOutput(
+                image_type="""LatentImage {
                     width: Input0.width,
                     height: Input0.height
-                }"""),
+                }"""
+            ),
         ]
 
         self.category = StableDiffusionCategory

@@ -5,8 +5,7 @@ from .base_input import BaseInput
 
 class StableDiffusionModelInput(BaseInput):
     def __init__(
-        self, label: str = "Model",
-            input_type: ExpressionJson = "StableDiffusionModel"
+        self, label: str = "Model", input_type: ExpressionJson = "StableDiffusionModel"
     ):
         input_type = expression.intersect(
             input_type,

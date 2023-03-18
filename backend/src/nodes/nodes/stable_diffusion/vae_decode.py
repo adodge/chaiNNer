@@ -22,7 +22,10 @@ class VAEDecodeNode(NodeBase):
             VAEModelInput(),
         ]
         self.outputs = [
-            ImageOutput(image_type="""Image{ width: Input0.width, height: Input0.height }""", channels=3),
+            ImageOutput(
+                image_type="""Image{ width: Input0.width, height: Input0.height }""",
+                channels=3,
+            ),
         ]
 
         self.category = StableDiffusionCategory

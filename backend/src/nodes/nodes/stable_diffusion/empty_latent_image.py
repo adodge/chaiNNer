@@ -48,8 +48,6 @@ class EmptyLatentImageNode(NodeBase):
         self.sub = "Latent"
 
     def run(self, width: int, height: int) -> LatentImage:
-        width, height = nearest_valid_size(
-            width, height, step=64
-        )
+        width, height = nearest_valid_size(width, height, step=64)
 
         return LatentImage.empty(width, height)
