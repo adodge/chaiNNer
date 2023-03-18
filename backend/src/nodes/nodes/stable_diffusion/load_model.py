@@ -4,8 +4,6 @@ import os
 from typing import Tuple
 
 from ...impl.stable_diffusion.types import (
-    BuiltInCheckpointConfigName,
-    CheckpointConfig,
     CLIPModel,
     StableDiffusionModel,
     VAEModel,
