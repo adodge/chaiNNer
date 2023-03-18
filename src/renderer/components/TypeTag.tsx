@@ -2,12 +2,7 @@ import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/na
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-    getField,
-    isDirectory,
-    isImage,
-    withoutNull,
-} from '../../common/types/util';
+import { getField, isDirectory, isImage, withoutNull } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -83,7 +78,11 @@ const getTypeText = (type: Type): TagValue[] => {
             }
         }
 
-        if (type.name === 'StableDiffusionModel' || type.name === 'CLIPModel' || type.name === 'Conditioning') {
+        if (
+            type.name === 'StableDiffusionModel' ||
+            type.name === 'CLIPModel' ||
+            type.name === 'Conditioning'
+        ) {
             const arch = getField(type, 'arch') ?? NeverType.instance;
             if (isStringLiteral(arch)) {
                 tags.push({ kind: 'literal', value: arch.value });

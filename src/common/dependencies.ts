@@ -151,8 +151,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: 36.5 * KB,
                 },
             ],
-            description:
-                'Stable Diffusion is a deep learning text-to-image model.',
+            description: 'Stable Diffusion is a deep learning text-to-image model.',
         },
     ];
 };

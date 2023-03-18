@@ -1,14 +1,13 @@
-import {literal, NamedExpression} from '@chainner/navi';
-import { memo, useEffect, useMemo } from 'react';
+import { literal } from '@chainner/navi';
+import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { ModelDataTags } from './elements/ModelDataTags';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
-import {struct} from "../../../common/types/util";
-import {Center, Flex, Spacer, Text} from "@chakra-ui/react";
-import {TypeTags} from "../TypeTag";
 
 interface ConditioningData {
     arch: string;

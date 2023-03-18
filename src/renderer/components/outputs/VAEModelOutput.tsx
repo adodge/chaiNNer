@@ -1,18 +1,14 @@
 import { NamedExpression } from '@chainner/navi';
 import { memo, useEffect, useMemo } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
 export const VAEModelOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(id)?.outputs.get(outputId)
-        );
-
         const { current } = useOutputData(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);

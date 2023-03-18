@@ -2,14 +2,11 @@ import { literal } from '@chainner/navi';
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { SchemaId } from '../../../common/common-types';
 import { struct } from '../../../common/types/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
-
-const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
 interface LatentImageBroadcastData {
     width: number;
@@ -22,8 +19,7 @@ export const LatentImageOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const { selectNode, setManualOutputType, createNode, createConnection } =
-            useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
 
         const outputIndex = useContextSelector(BackendContext, (c) =>
             c.schemata.get(schemaId).outputs.findIndex((o) => o.id === outputId)
@@ -45,7 +41,6 @@ export const LatentImageOutput = memo(
             }
         }, [id, outputId, current, setManualOutputType]);
 
-        console.log(type);
         return (
             <Flex
                 h="full"
