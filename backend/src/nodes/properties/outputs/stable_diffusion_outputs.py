@@ -1,10 +1,9 @@
-from nodes.impl.stable_diffusion.types import (
+from ...impl.stable_diffusion.types import (
     CLIPModel,
     Conditioning,
     LatentImage,
     StableDiffusionModel,
 )
-
 from .. import expression
 from .base_output import BaseOutput
 
