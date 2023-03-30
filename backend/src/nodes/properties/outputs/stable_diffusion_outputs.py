@@ -1,11 +1,12 @@
 from nodes.impl.stable_diffusion.types import (
     CLIPModel,
+    Conditioning,
     LatentImage,
     StableDiffusionModel,
 )
 
 from .. import expression
-from .base_output import BaseOutput, OutputKind
+from .base_output import BaseOutput
 
 
 class StableDiffusionModelOutput(BaseOutput):
@@ -13,19 +14,13 @@ class StableDiffusionModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "StableDiffusionModel",
         label: str = "Model",
-        kind: OutputKind = "generic",
-        should_broadcast=False,
     ):
-        super().__init__(model_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(model_type, label)
 
-    def get_broadcast_data(self, value: StableDiffusionModel):
-        if not self.should_broadcast:
-            return None
-
-        return {
-            "arch": value.version.value,
-        }
+    def get_broadcast_type(self, value: StableDiffusionModel):
+        return expression.StableDiffusionModel(
+            arch=expression.literal(value.version.value),
+        )
 
 
 class CLIPModelOutput(BaseOutput):
@@ -33,19 +28,13 @@ class CLIPModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "CLIPModel",
         label: str = "CLIP",
-        kind: OutputKind = "generic",
-        should_broadcast=False,
     ):
-        super().__init__(model_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(model_type, label)
 
-    def get_broadcast_data(self, value: CLIPModel):
-        if not self.should_broadcast:
-            return None
-
-        return {
-            "arch": value.version.value,
-        }
+    def get_broadcast_type(self, value: CLIPModel):
+        return expression.CLIPModel(
+            arch=expression.literal(value.version.value),
+        )
 
 
 class VAEModelOutput(BaseOutput):
@@ -53,11 +42,8 @@ class VAEModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "VAEModel",
         label: str = "VAE",
-        kind: OutputKind = "generic",
-        should_broadcast=False,
     ):
-        super().__init__(model_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(model_type, label)
 
 
 class ConditioningOutput(BaseOutput):
@@ -65,19 +51,13 @@ class ConditioningOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "Conditioning",
         label: str = "Conditioning",
-        kind: OutputKind = "generic",
-        should_broadcast=False,
     ):
-        super().__init__(model_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(model_type, label)
 
-    def get_broadcast_data(self, value: CLIPModel):
-        if not self.should_broadcast:
-            return None
-
-        return {
-            "arch": value.version.value,
-        }
+    def get_broadcast_type(self, value: Conditioning):
+        return expression.Conditioning(
+            arch=expression.literal(value.version.value),
+        )
 
 
 class LatentImageOutput(BaseOutput):
@@ -85,19 +65,16 @@ class LatentImageOutput(BaseOutput):
         self,
         image_type: expression.ExpressionJson = "LatentImage",
         label: str = "Latent",
-        kind: OutputKind = "generic",
-        should_broadcast=False,
     ):
-        super().__init__(image_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(image_type, label)
 
-    def get_broadcast_data(self, value: LatentImage):
-        if not self.should_broadcast:
-            return None
-
+    def get_broadcast_type(self, value: LatentImage):
         w, h = value.size()
 
-        return {
-            "height": h * 64,
-            "width": w * 64,
-        }
+        return expression.named(
+            "LatentImage",
+            {
+                "width": w * 64,
+                "height": h * 64,
+            },
+        )
