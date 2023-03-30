@@ -10,20 +10,12 @@ import { ExpressionJson, fromJson } from '../../../common/types/json';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { CLIPModelOutput } from '../outputs/CLIPModelOutput';
-import { ConditioningOutput } from '../outputs/ConditioningOutput';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
-import { LatentImageOutput } from '../outputs/LatentImageOutput';
-import { NcnnModelOutput } from '../outputs/NcnnModelOutput';
-import { OnnxModelOutput } from '../outputs/OnnxModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps, UseOutputData } from '../outputs/props';
-import { PyTorchOutput } from '../outputs/PyTorchOutput';
-import { StableDiffusionModelOutput } from '../outputs/StableDiffusionModelOutput';
 import { TaggedOutput } from '../outputs/TaggedOutput';
-import { VAEModelOutput } from '../outputs/VAEModelOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
@@ -35,31 +27,13 @@ const OutputComponents: Readonly<
 > = {
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
-    pytorch: TaggedOutput,
-    ncnn: TaggedOutput,
-    onnx: GenericOutput,
-    directory: GenericOutput,
-    text: GenericOutput,
-    'stable-diffusion': StableDiffusionModelOutput,
-    clip: CLIPModelOutput,
-    vae: VAEModelOutput,
-    conditioning: ConditioningOutput,
-    'latent-image': LatentImageOutput,
+    tagged: TaggedOutput,
     generic: GenericOutput,
 };
 const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     image: true,
     'large-image': false,
-    pytorch: false,
-    ncnn: false,
-    onnx: true,
-    directory: true,
-    text: true,
-    'stable-diffusion': false,
-    clip: false,
-    vae: false,
-    conditioning: false,
-    'latent-image': false,
+    tagged: false,
     generic: true,
 };
 
